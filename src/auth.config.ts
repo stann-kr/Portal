@@ -1,0 +1,64 @@
+/**
+ * @file auth.config.ts
+ * @description NextAuth.js 설정 (Edge Runtime 호환).
+ * 미들웨어에서 사용 가능하도록 DB 접근 로직 없이 순수 설정만 포함.
+ */
+import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+
+type UserRole = "admin" | "student";
+
+export const authConfig = {
+  providers: [
+    // authorize 로직은 auth.ts에서 오버라이드.
+    // 여기서는 Credentials provider 존재 선언만.
+    Credentials({}),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+  callbacks: {
+    /**
+     * 페이지 접근 권한 제어 콜백.
+     * 로그인 페이지 접근 시 이미 로그인된 사용자는 역할별 대시보드로 리다이렉트.
+     * 그 외 모든 페이지는 로그인 필수.
+     */
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isAuthPage = nextUrl.pathname.startsWith("/login");
+
+      if (isAuthPage) {
+        if (isLoggedIn) {
+          const role: UserRole = auth.user.role ?? "student";
+          const target =
+            role === "admin" ? "/dashboard/admin" : "/dashboard/student";
+          return Response.redirect(new URL(target, nextUrl));
+        }
+        return true;
+      }
+
+      return isLoggedIn;
+    },
+    /**
+     * JWT 생성/갱신 시 role을 토큰에 포함.
+     */
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role ?? "student";
+      }
+      return token;
+    },
+    /**
+     * 세션 객체에 JWT의 role 전달.
+     */
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.role = token.role;
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/login",
+  },
+} satisfies NextAuthConfig;

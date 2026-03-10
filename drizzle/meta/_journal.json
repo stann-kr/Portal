@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1773079103525,
+      "tag": "0000_freezing_patch",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773081640288,
+      "tag": "0001_majestic_shooting_star",
+      "breakpoints": true
+    }
+  ]
+}

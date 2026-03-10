@@ -1,7 +1,14 @@
-FROM node:20-alpine
-RUN apk add --no-cache libc6-compat
+# Cloudflare Wrangler(workerd)는 glibc 환경을 필요로 하므로 Debian 계열 이미지를 사용함
+FROM node:20-bookworm-slim
+
+# 필요한 의존성 패키지 설치 (선택 사항)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# 개발 환경에서는 로컬 볼륨 바인딩을 통해 코드를 마운트하여 실행함
-# 로컬에 node_modules가 없을 수 있으므로 항상 컨테이너 기동 시 npm install을 수행하게 함
+# 컨테이너 실행 시 의존성 설치 및 개발 서버 구동
 CMD npm install && npm run dev

@@ -10,7 +10,7 @@
 
 1. **사용자 권한 관리 및 인증**
    - 사용자 역할 분리: Admin(강사), Student(수강생).
-   - 인증 방식: 구글 소셜 로그인 기반 JWT(혹은 세션) 처리.
+   - 인증 방식: Credentials(이메일+비밀번호) 기반 JWT 세션 처리. 관리자가 직접 학생 계정 생성.
    - 접근 제어: 역할에 따른 보호 라우트 처리 및 데이터 접근 권한 분리.
 2. **커리큘럼 및 캘린더 동기화**
    - 레슨 일정 관리 기능: 강사가 일정 등록.
@@ -27,7 +27,7 @@
 ## 3. 기술 스택 및 데이터 모델 제약
 
 1. **프레임워크:** Next.js 15 (App Router).
-2. **스타일링:** Tailwind CSS, Framer Motion (Sci-Fi, 심해 다크/네온 테마).
+2. **스타일링:** Tailwind CSS v4, Framer Motion. **클린/미니멀 라이트 테마** (Inter 폰트, 회색조 디자인 시스템).
 3. **데이터베이스:** Cloudflare D1 (비동기 SQLite 기반).
 4. **오브젝트 스토리지:** Cloudflare R2 (이미지 등 정적 파일 업로드용).
 5. **백엔드 로직 (API):** Next.js Server Actions 및 필요 시 Cloudflare Workers 연동.
