@@ -4,25 +4,54 @@
  * @description Drizzle ORM 클라이언트 팩토리.
  *
  * 런타임 환경에 따라 두 가지 DB 드라이버를 사용:
- * - 프로덕션 (Cloudflare Workers): D1Database 바인딩 → drizzle-orm/d1
+ * - 프로덕션 (Cloudflare Workers): getCloudflareContext().env.DB → drizzle-orm/d1
  * - 로컬 개발 (Next.js dev): Wrangler가 저장한 로컬 SQLite 파일 → drizzle-orm/better-sqlite3
  *
+ * ⚠️ OpenNext에서 D1 바인딩은 process.env.DB로 접근 불가.
+ *    반드시 getCloudflareContext()를 통해 접근해야 합니다.
  */
 import * as schema from "./schema";
 
-export type DrizzleDb = ReturnType<typeof createDb>;
+export type DrizzleDb = ReturnType<typeof createLocalDb> | ReturnType<typeof createD1Db>;
+
+type D1Database = {
+  prepare: (query: string) => unknown;
+  exec: (query: string) => Promise<unknown>;
+};
 
 /**
- * 환경에 따라 적절한 Drizzle DB 인스턴스 반환.
- * @param d1 - Cloudflare D1Database 바인딩 (프로덕션/Workers 환경)
+ * D1 바인딩을 직접 받아 Drizzle 인스턴스 생성 (Workers 프로덕션용).
+ * @param d1 - Cloudflare D1Database 바인딩
  */
-export function createDb(d1?: any) {
-  // 프로덕션: Cloudflare D1 바인딩 사용
-  if (d1) {
-    // drizzle-orm/d1은 Edge Runtime에서 require()로 지연 로딩하는 것이 안전함
-    const { drizzle } = require("drizzle-orm/d1");
-    const db = drizzle(d1, { schema });
-    return db as any;
+function createD1Db(d1: D1Database) {
+  const { drizzle } = require("drizzle-orm/d1");
+  return drizzle(d1, { schema });
+}
+
+/**
+ * 환경에 따라 적절한 Drizzle DB 인스턴스를 반환하는 팩토리 함수.
+ *
+ * - Cloudflare Workers(프로덕션): getCloudflareContext().env.DB 를 통해 D1 접근
+ * - 로컬 개발(Next.js dev server): Wrangler SQLite 파일 직접 접근
+ *
+ * @throws DB 바인딩 미발견 시 에러
+ */
+export function createDb(): DrizzleDb {
+  // 프로덕션: OpenNext 환경에서 Cloudflare 바인딩 획득
+  if (process.env.NODE_ENV !== "development") {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { getCloudflareContext } = require("@opennextjs/cloudflare");
+      const ctx = getCloudflareContext();
+      const d1 = ctx?.env?.DB as D1Database | undefined;
+
+      if (d1) {
+        return createD1Db(d1);
+      }
+    } catch {
+      // getCloudflareContext를 사용할 수 없는 환경 (테스트, 빌드 타임 등)
+      console.warn("[db] getCloudflareContext not available, attempting fallback");
+    }
   }
 
   // 로컬 개발: Wrangler가 저장한 SQLite 파일에 직접 접근
@@ -31,7 +60,9 @@ export function createDb(d1?: any) {
   }
 
   throw new Error(
-    "D1 Database binding not found. Please check your wrangler.toml and environment variables.",
+    "[db] D1 Database binding not found.\n" +
+      "Production: Make sure DB binding is configured in wrangler.toml\n" +
+      "Local: Run: ./dev.sh migrate",
   );
 }
 
@@ -45,7 +76,6 @@ function createLocalDb() {
   const Database = require(/* webpackIgnore: true */ "better-sqlite" + "3");
   const { drizzle } = require(/* webpackIgnore: true */ "drizzle-orm/better-sqlite" + "3");
 
-  // Wrangler 로컬 D1 SQLite 파일 경로 탐색
   const wranglerD1Dir = path.join(
     process.cwd(),
     ".wrangler",
