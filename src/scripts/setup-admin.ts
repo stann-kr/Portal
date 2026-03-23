@@ -9,10 +9,12 @@ import { randomUUID } from "crypto";
 
 const email = process.argv[2];
 const password = process.argv[3];
-const displayName = process.argv[4] || "Stann Lumo";
+const displayName = process.argv[4] || "Stann";
 
 if (!email || !password) {
-  console.error("Usage: npx tsx src/scripts/setup-admin.ts <email> <password> [displayName]");
+  console.error(
+    "Usage: npx tsx src/scripts/setup-admin.ts <email> <password> [displayName]",
+  );
   process.exit(1);
 }
 
@@ -22,15 +24,23 @@ async function generateSql() {
 
   const sql = `INSERT INTO profiles (id, email, password_hash, display_name, role) VALUES ('${id}', '${email}', '${hash}', '${displayName}', 'admin') ON CONFLICT(email) DO UPDATE SET role='admin', password_hash='${hash}';`;
 
-  console.log("\n✅ SQL 명령어가 생성되었습니다! 아래 명령어를 상황에 맞게 실행하세요:\n");
-  
+  console.log(
+    "\n✅ SQL 명령어가 생성되었습니다! 아래 명령어를 상황에 맞게 실행하세요:\n",
+  );
+
   console.log("--- [ 로컬 전용 (Local) ] ---");
-  console.log(`docker compose run --rm web npx wrangler d1 execute portal-db --local --command "${sql.replace(/"/g, '\\"')}"`);
-  
+  console.log(
+    `docker compose run --rm web npx wrangler d1 execute portal-db --local --command "${sql.replace(/"/g, '\\"')}"`,
+  );
+
   console.log("\n--- [ 원격 전용 (Remote/Production) ] ---");
-  console.log(`docker compose run --rm web npx wrangler d1 execute portal-db --remote --command "${sql.replace(/"/g, '\\"')}"`);
-  
-  console.log("\n⚠️  주의: 비밀번호가 포함된 해시값이 터미널 로그에 남지 않도록 실행 후 터미널을 클리어하는 것이 좋습니다.\n");
+  console.log(
+    `docker compose run --rm web npx wrangler d1 execute portal-db --remote --command "${sql.replace(/"/g, '\\"')}"`,
+  );
+
+  console.log(
+    "\n⚠️  주의: 비밀번호가 포함된 해시값이 터미널 로그에 남지 않도록 실행 후 터미널을 클리어하는 것이 좋습니다.\n",
+  );
 }
 
 generateSql().catch(console.error);
