@@ -20,4 +20,8 @@ binding = "BUCKET"
 bucket_name = "portal-storage"
 
 [vars]
-AUTH_URL = "https://portal.ilsny7.workers.dev"
+AUTH_URL = "https://portal.stann.kr"
+
+[[routes]]
+pattern = "portal.stann.kr"
+custom_domain = true
