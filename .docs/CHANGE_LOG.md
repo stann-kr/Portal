@@ -3,7 +3,24 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v0.6.0] - 2026-03-24
+
+### Changed
+
+- Cloudflare 배포 어댑터를 `@cloudflare/next-on-pages` → `@opennextjs/cloudflare`로 전환함. (모든 라우트에 Edge Runtime 강제 선언 제거 가능, Node.js 호환성 확보)
+- `package.json`의 빌드 스크립트를 `build:pages` → `build:worker`로 변경하여 OpenNext CLI를 직접 호출함
+- `wrangler.toml`의 진입점을 `.vercel/output/static/_worker.js` → `.open-next/worker.js`로, 에셋 경로를 `.open-next/assets`로 변경함
+- `open-next.config.ts` 파일 신규 추가 (OpenNext 빌더 최소 설정)
+- `.gitignore`에 `.open-next/` 빌드 산출물 경로 추가
+
+### Fixed
+
+- 기존 배포 어댑터가 요구하던 모든 라우트 파일(SSR 페이지, API 라우트 등)에 `export const runtime = 'edge'` 강제 선언 문제 해소
+
+---
+
 ## [v0.5.0] - 2026-03-24
+
 
 ### Changed
 
