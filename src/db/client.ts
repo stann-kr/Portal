@@ -7,8 +7,6 @@
  * - 프로덕션 (Cloudflare Workers): D1Database 바인딩 → drizzle-orm/d1
  * - 로컬 개발 (Next.js dev): Wrangler가 저장한 로컬 SQLite 파일 → drizzle-orm/better-sqlite3
  *
- * setupDevPlatform()은 Next.js 15 RSC Server Action 컨텍스트에서 D1 바인딩을
- * 주입하지 못하는 알려진 이슈가 있으므로, 개발 환경에서는 SQLite 파일에 직접 접근.
  */
 import * as schema from "./schema";
 

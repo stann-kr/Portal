@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     CredentialsProvider({
       /**
        * 자격증명 검증 로직.
-       * setupDevPlatform()이 로컬 개발 시 process.env에 D1 바인딩을 주입함.
+       * Cloudflare Workers: D1 바인딩(env.DB)을 통해 접근. 로컬: Wrangler SQLite fallback 사용.
        * 프로덕션: Cloudflare Workers 런타임에서 env.DB로 자동 주입.
        *
        * @param credentials - { email, password }
@@ -28,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // setupDevPlatform()은 process.env에 D1Database 객체를 직접 주입함
+        // Cloudflare Workers: env.DB / 로컬: undefined(이후 createDb가 SQLite fallback 사용)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dbBinding = (process.env as any).DB as any;
 
