@@ -6,6 +6,8 @@ import {
   BookOpen,
   FileVideo,
   Users,
+  Tag,
+  CalendarDays,
 } from "lucide-react";
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
@@ -33,7 +35,16 @@ export default async function DashboardLayout({
             icon: LayoutDashboard,
           },
           { name: "Students", href: "/dashboard/admin", icon: Users },
-          { name: "Categories", href: "/dashboard/admin/categories", icon: Tag },
+          {
+            name: "Categories",
+            href: "/dashboard/admin/categories",
+            icon: Tag,
+          },
+          {
+            name: "Calendar",
+            href: "/dashboard/calendar",
+            icon: CalendarDays,
+          },
           { name: "Community", href: "/community", icon: MessageSquare },
         ]
       : [
@@ -41,6 +52,11 @@ export default async function DashboardLayout({
             name: "Dashboard",
             href: "/dashboard/student",
             icon: LayoutDashboard,
+          },
+          {
+            name: "Calendar",
+            href: "/dashboard/calendar",
+            icon: CalendarDays,
           },
           {
             name: "Curriculum",

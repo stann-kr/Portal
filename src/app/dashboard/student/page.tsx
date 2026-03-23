@@ -9,40 +9,60 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import { PlayCircle, CalendarDays, BookOpen, ChevronRight } from "lucide-react";
+import { PlayCircle, CalendarDays, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCurrentModule } from "@/lib/actions/curriculum";
+import { getCurrentModule, getCurriculumByStudent } from "@/lib/actions/curriculum";
 import { getNextLesson } from "@/lib/actions/lessons";
+import { ProgressCharts } from "@/components/dashboard/ProgressCharts";
 
 // ─────────────────────────────────────────────────
-// 현재 모듈 섹션
+// 현재 모듈 섹션 (시각화 포함)
 // ─────────────────────────────────────────────────
 
-async function CurrentModuleSection({ studentId }: { studentId: string }) {
-  const mod = await getCurrentModule(studentId);
-
-  if (!mod) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 rounded-xl border border-dashed bg-muted/20 text-muted-foreground space-y-2">
-        <p className="text-sm">모든 커리큘럼을 완료했습니다! 🎉</p>
-      </div>
-    );
-  }
+async function DashboardOverview({ studentId, displayName }: { studentId: string; displayName: string }) {
+  const allModules = await getCurriculumByStudent(studentId);
+  const completedCount = allModules.filter((m: { isCompleted: boolean }) => m.isCompleted).length;
+  const totalCount = allModules.length;
+  
+  const currentMod = await getCurrentModule(studentId);
 
   return (
-    <div className="flex items-center justify-between p-6 rounded-lg border bg-muted/20">
-      <div className="space-y-1">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          WEEK {String(mod.weekNum).padStart(2, "0")}
-        </p>
-        <h3 className="font-medium text-foreground text-lg">{mod.title}</h3>
-      </div>
-      <Button asChild variant="default" className="gap-2">
-        <Link href="/dashboard/student/curriculum">
-          <PlayCircle className="w-4 h-4" />
-          Resume
-        </Link>
-      </Button>
+    <div className="space-y-8">
+      {/* 1. 시각화 차트 및 요약 */}
+      <ProgressCharts 
+        completedCount={completedCount} 
+        totalCount={totalCount} 
+        displayName={displayName} 
+      />
+
+      {/* 2. 현재 진행 중인 모듈 숏컷 */}
+      {currentMod && (
+        <section className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold tracking-tight text-muted-foreground uppercase flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Next Activity
+            </h2>
+            <Link href="/dashboard/student/curriculum" className="text-xs text-primary hover:underline">
+              전체 커리큘럼 보기
+            </Link>
+          </div>
+          <div className="flex items-center justify-between p-6 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+                WEEK {String(currentMod.weekNum).padStart(2, "0")}
+              </p>
+              <h3 className="font-medium text-foreground text-lg">{currentMod.title}</h3>
+            </div>
+            <Button asChild variant="default" className="gap-2">
+              <Link href="/dashboard/student/curriculum">
+                <PlayCircle className="w-4 h-4" />
+                Resume
+              </Link>
+            </Button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -147,29 +167,13 @@ export default async function StudentDashboard() {
         </Button>
       </header>
 
-      {/* 현재 모듈 */}
-      <section className="p-8 rounded-xl border border-border bg-card shadow-sm space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-muted-foreground" />
-            Current Module
-          </h2>
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="gap-1 text-xs text-muted-foreground"
-          >
-            <Link href="/dashboard/student/curriculum">
-              전체 보기
-              <ChevronRight className="w-3 h-3" />
-            </Link>
-          </Button>
-        </div>
-        <Suspense fallback={<ModuleSkeleton />}>
-          <CurrentModuleSection studentId={studentId} />
-        </Suspense>
-      </section>
+      {/* 대시보드 오버뷰 (차트 + 현재 모듈) */}
+      <Suspense fallback={<ModuleSkeleton />}>
+        <DashboardOverview 
+          studentId={studentId} 
+          displayName={session?.user?.name || ""} 
+        />
+      </Suspense>
 
       {/* 하단 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
