@@ -11,10 +11,10 @@ import { useActionState, useEffect, useTransition } from "react";
 import { MessageSquare, Trash2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatTimestamp } from "@/lib/utils/format";
 import {
   createFeedback,
   deleteFeedback,
-  formatTimestamp,
   type CreateFeedbackState,
 } from "@/lib/actions/feedbacks";
 
