@@ -1,0 +1,146 @@
+/**
+ * @file src/lib/actions/assignments.ts
+ * @description 과제 제출 관련 서버 액션.
+ * Student: 과제 제출(YouTube/SoundCloud URL), 본인 과제 조회.
+ * Admin: 전체 학생 과제 조회, 미피드백 과제 수 조회.
+ */
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
+import { createDb } from "@/db/client";
+import { assignments } from "@/db/schema";
+import { and, eq, desc, count } from "drizzle-orm";
+
+async function requireAuth() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  return session;
+}
+
+async function requireAdmin() {
+  const session = await requireAuth();
+  if (session.user.role !== "admin") throw new Error("Admin only");
+  return session;
+}
+
+/** 지원하는 미디어 플랫폼 URL 패턴 */
+const MEDIA_URL_PATTERNS = [
+  /^https?:\/\/(www\.)?youtube\.com\/watch/,
+  /^https?:\/\/youtu\.be\//,
+  /^https?:\/\/(www\.)?soundcloud\.com\//,
+];
+
+function isValidMediaUrl(url: string): boolean {
+  return MEDIA_URL_PATTERNS.some((p) => p.test(url));
+}
+
+// ───────────────────────────────────────────────
+// 학생: 과제 제출
+// ───────────────────────────────────────────────
+
+export type SubmitAssignmentState = {
+  error?: string;
+  success?: boolean;
+  id?: string;
+};
+
+/**
+ * 과제 제출 (Student 전용).
+ * @param _prev - useActionState 이전 상태
+ * @param formData - { mediaUrl, title }
+ */
+export async function submitAssignment(
+  _prev: SubmitAssignmentState,
+  formData: FormData,
+): Promise<SubmitAssignmentState> {
+  const session = await requireAuth();
+  if (session.user.role !== "student")
+    return { error: "학생만 과제를 제출할 수 있습니다." };
+
+  const mediaUrl = (formData.get("mediaUrl") as string)?.trim();
+  const title = (formData.get("title") as string)?.trim();
+
+  if (!mediaUrl) return { error: "미디어 URL을 입력해주세요." };
+  if (!isValidMediaUrl(mediaUrl)) {
+    return { error: "YouTube 또는 SoundCloud URL만 지원합니다." };
+  }
+
+  const db = createDb();
+  const id = crypto.randomUUID();
+
+  await db.insert(assignments).values({
+    id,
+    studentId: session.user.id!,
+    mediaUrl,
+  });
+
+  revalidatePath("/dashboard/student/assignments");
+  return { success: true, id };
+}
+
+// ───────────────────────────────────────────────
+// 조회
+// ───────────────────────────────────────────────
+
+/**
+ * 학생 본인 과제 목록 조회 (최신순).
+ */
+export async function getMyAssignments() {
+  const session = await requireAuth();
+  const db = createDb();
+  return db
+    .select()
+    .from(assignments)
+    .where(eq(assignments.studentId, session.user.id!))
+    .orderBy(desc(assignments.submittedAt));
+}
+
+/**
+ * 특정 학생의 과제 목록 조회 (Admin용).
+ */
+export async function getAssignmentsByStudent(studentId: string) {
+  await requireAdmin();
+  const db = createDb();
+  return db
+    .select()
+    .from(assignments)
+    .where(eq(assignments.studentId, studentId))
+    .orderBy(desc(assignments.submittedAt));
+}
+
+/**
+ * 과제 단건 조회 (ID로).
+ */
+export async function getAssignmentById(assignmentId: string) {
+  const db = createDb();
+  const rows = await db
+    .select()
+    .from(assignments)
+    .where(eq(assignments.id, assignmentId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/**
+ * Admin Dashboard: 피드백 없는 과제 수 (Pending Feedbacks 통계).
+ */
+export async function getPendingFeedbackCount(): Promise<number> {
+  await requireAdmin();
+  const db = createDb();
+  const { feedbacks } = await import("@/db/schema");
+  const { notExists } = await import("drizzle-orm");
+
+  const rows = await db
+    .select({ id: assignments.id })
+    .from(assignments)
+    .where(
+      notExists(
+        db
+          .select()
+          .from(feedbacks)
+          .where(eq(feedbacks.assignmentId, assignments.id)),
+      ),
+    );
+  return rows.length;
+}

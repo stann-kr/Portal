@@ -1,10 +1,12 @@
-/**
- * @file dashboard/layout.tsx
- * @description 대시보드 공통 레이아웃 (Admin / Student 공유).
- * 사이드바 네비게이션, 유저 정보 표시, 로그아웃 기능 포함.
- */
 import Link from "next/link";
-import { LayoutDashboard, Calendar, MessageSquare, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  MessageSquare,
+  LogOut,
+  BookOpen,
+  FileVideo,
+  Users,
+} from "lucide-react";
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -22,11 +24,35 @@ export default async function DashboardLayout({
 
   const role = session.user.role ?? "student";
 
-  const navItems = [
-    { name: "Dashboard", href: `/dashboard/${role}`, icon: LayoutDashboard },
-    { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Community", href: "/community", icon: MessageSquare },
-  ];
+  const navItems =
+    role === "admin"
+      ? [
+          {
+            name: "Dashboard",
+            href: "/dashboard/admin",
+            icon: LayoutDashboard,
+          },
+          { name: "Students", href: "/dashboard/admin", icon: Users },
+          { name: "Community", href: "/community", icon: MessageSquare },
+        ]
+      : [
+          {
+            name: "Dashboard",
+            href: "/dashboard/student",
+            icon: LayoutDashboard,
+          },
+          {
+            name: "Curriculum",
+            href: "/dashboard/student/curriculum",
+            icon: BookOpen,
+          },
+          {
+            name: "Assignments",
+            href: "/dashboard/student/assignments",
+            icon: FileVideo,
+          },
+          { name: "Community", href: "/community", icon: MessageSquare },
+        ];
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">

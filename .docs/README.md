@@ -1,49 +1,121 @@
-# Stann Lumo - DJ Lesson Portal
+# Stann Lumo — DJ Lesson Portal
 
-## 1. 개요 (Overview)
+> 테크노 DJ 'Stann Lumo'의 수강생 전용 프라이빗 LMS 및 커뮤니티 포털.
+> [`portal.stann.com`](https://portal.stann.com)
 
-본 프로젝트는 테크노 DJ 'Stann Lumo'의 개인 레슨을 위한 프라이빗 LMS(학습 관리 시스템)이자, 수강생 커뮤니티 공간(`portal.stann.com`)임.
+---
 
-## 2. 디자인 콘셉트 (Design Concept)
+## 개요 (Overview)
 
-- **테마:** "Hypnotic, Futuristic, Sci-Fi"
-- **색상:** 심해/다크 베이스에 네온 톤(Cyan, Acid Green 등)의 포인트 컬러 활용.
+강사가 직접 학생 계정을 생성하고 커리큘럼·레슨을 관리하며, 학생은 믹스셋을 제출하고 타임스탬프 기반 피드백을 받는 프라이빗 LMS. 커뮤니티 게시판을 통한 수강생 간 소통도 지원함.
 
-## 3. 핵심 기능 (Core Features)
+---
 
-- **인증 및 권한:** Supabase Auth, 이메일 및 Google 소셜 로그인 지원, Role(Admin/Student) 기반 접근 권한 관리.
-- **피드백 시스템:** `react-player` 기반의 타임라인 코멘트 피드백 시스템. 지정된 타임스탬프 클릭 시 즉시 해당 구간 재생 지원.
-- **캘린더 동기화:** Google Calendar API 연동 및 고유 `.ics` 파일을 통한 개인화된 일정 동기화.
-- **커뮤니티 환승:** Tiptap WYSIWYG 에디터를 통한 리치 텍스트 작성 및 Supabase Realtime을 통한 실시간 토스트 알림.
+## 핵심 기능 (Core Features)
 
-## 4. 기술 스택 (Tech Stack)
+| 기능              | 설명                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **인증 / 권한**   | Credentials(이메일+비밀번호) 기반 JWT 세션. Admin이 학생 계정 직접 생성. Role(Admin/Student)별 보호 라우트                      |
+| **학생 관리**     | Admin 대시보드에서 학생 계정 CRUD, Student Roster 조회                                                                          |
+| **커리큘럼 관리** | 학생별 주차 단위 모듈 등록, 학생 본인의 완료 토글, 진행률 표시                                                                  |
+| **레슨 일정**     | 강사가 날짜·시간 지정 레슨 등록. 학생 전용 `.ics` URL로 모바일 캘린더 단방향 구독                                               |
+| **과제 피드백**   | 학생이 YouTube/SoundCloud URL 제출 → 강사가 `MM:SS` 타임스탬프 기반 피드백 작성 → 클릭 시 해당 시점 즉시 재생                   |
+| **커뮤니티**      | `gear-and-setup` / `track-id` / `terminal-info` / `general` 카테고리 게시판. TiptapEditor 리치 텍스트. 본인 글/댓글만 삭제 가능 |
 
-- **Framework:** Next.js 15 (App Router, Server Actions)
-- **BaaS:** Supabase (Auth, Database, Storage, Realtime)
-- **Styling:** Tailwind CSS, Tailwind Merge, CLSX, Framer Motion
-- **Editor:** Tiptap, DOMPurify
-- **Utils:** react-player, googleapis, ics, date-fns
+---
 
-## 5. 로컬 개발 환경 (Development Setup)
+## 기술 스택 (Tech Stack)
 
-본 프로젝트는 Apple Silicon 환경에서의 호환성과 독립성을 보장하기 위해 100% Docker 컨테이너 환경에서 구동됨. **로컬 터미널에서의 Node/npm 명령어 실행을 엄격히 금지함.**
+| 분야               | 기술                                                                  |
+| ------------------ | --------------------------------------------------------------------- |
+| **Framework**      | Next.js 15.3 (App Router, Server Actions)                             |
+| **Auth**           | NextAuth.js v5 (Credentials Provider, JWT)                            |
+| **Database**       | Cloudflare D1 (SQLite 기반) + Drizzle ORM                             |
+| **Object Storage** | Cloudflare R2                                                         |
+| **Styling**        | Tailwind CSS v4, Framer Motion — 클린/미니멀 라이트 테마 (Inter 폰트) |
+| **Editor**         | Tiptap (WYSIWYG)                                                      |
+| **Media Player**   | react-player (YouTube / SoundCloud)                                   |
+| **Calendar**       | `ics` 라이브러리 (`.ics` 파일 생성)                                   |
+| **Dev Env**        | 100% Docker (`linux/arm64`, Apple Silicon)                            |
 
-### 컨테이너 실행
+---
+
+## 데이터 모델 (Schema)
+
+```
+profiles        — 사용자 계정 (id, email, passwordHash, displayName, role)
+curriculums     — 학생별 주차 모듈 (weekNum, title, isCompleted)
+lessons         — 레슨 일정 (studentId, scheduledAt)
+assignments     — 과제 제출 (studentId, mediaUrl)
+feedbacks       — 타임스탬프 피드백 (assignmentId, timeMarker, content)
+posts           — 커뮤니티 게시물 (authorId, category, title, contentHtml)
+comments        — 게시물 댓글 (postId, authorId, contentHtml)
+```
+
+---
+
+## 라우트 구조 (Routes)
+
+```
+/login                                   — 로그인
+/dashboard/admin                         — Admin 대시보드 (학생 목록, 통계)
+/dashboard/admin/students/new            — 학생 계정 생성
+/dashboard/admin/students/[id]           — 학생 상세 (커리큘럼·레슨 관리)
+/dashboard/student                       — Student 대시보드 (현재 모듈, 다음 레슨)
+/dashboard/student/curriculum            — 전체 커리큘럼 + 진행률
+/dashboard/student/assignments           — 과제 목록 + 제출
+/dashboard/student/assignments/[id]      — 과제 상세 (VideoPlayer + 타임라인 피드백)
+/community                               — 커뮤니티 (카테고리별 게시판)
+/community/new                           — 게시물 작성
+/community/[postId]                      — 게시물 상세 + 댓글
+/api/calendar/[studentId]                — .ics 캘린더 파일 다운로드
+```
+
+---
+
+## 로컬 개발 환경 (Development Setup)
+
+**⚠️ 로컬 터미널에서 Node/npm 직접 실행 금지. 모든 명령어는 Docker를 통해 실행.**
+
+### 개발 서버 실행
 
 ```bash
-# 개발 서버 백그라운드 구동
-docker compose up -d web
-
-# 서버 로그 확인
-docker compose logs -f web
+docker compose up          # 포어그라운드
+docker compose up -d       # 백그라운드
+docker compose logs -f web # 로그 확인
 ```
 
 ### 패키지 관리
 
 ```bash
-# 의존성 설치 (예: npm install dayjs)
+# 패키지 설치
 docker compose run --rm web npm install <pkg>
 
-# 일회성 스크립트 실행 (예: npx prisma migrate dev)
+# Drizzle 마이그레이션
+docker compose run --rm web npx drizzle-kit migrate
+
+# 일회성 스크립트
 docker compose run --rm web npx <command>
 ```
+
+### 환경 변수
+
+`.env.local` 파일 생성 후 아래 변수 설정 (`.env.example` 참고):
+
+```
+AUTH_SECRET=
+DATABASE_URL=
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_DATABASE_ID=
+```
+
+---
+
+## 문서 (Docs)
+
+| 파일                                                         | 내용                         |
+| ------------------------------------------------------------ | ---------------------------- |
+| [REQUIREMENTS.md](./REQUIREMENTS.md)                         | 기능 요구사항 명세           |
+| [CHANGE_LOG.md](./CHANGE_LOG.md)                             | 버전별 변경 이력             |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)                   | 트러블슈팅 이력              |
+| [private/CLOUDFLARE_GUIDE.md](./private/CLOUDFLARE_GUIDE.md) | Cloudflare D1/R2 설정 가이드 |

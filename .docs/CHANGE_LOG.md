@@ -3,6 +3,23 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v0.4.0] - 2026-03-10
+
+### Added
+
+- **Phase 1 — 학생 계정 관리**: `students.ts` 서버 액션(createStudent, getStudents, deleteStudent), `StudentCard` 컴포넌트, `/dashboard/admin/students/new` 폼 페이지, Admin Dashboard DB 연동(Suspense 스트리밍)
+- **Phase 2 — 커리큘럼/레슨/캘린더**: `curriculum.ts`(createModule, toggleComplete), `lessons.ts`(createLesson), 학생 상세 페이지(`/admin/students/[id]`), Student Dashboard DB 연동, 커리큘럼 목록 페이지(진행률 바), `/api/calendar/[studentId]` `.ics` 파일 API
+- **Phase 3 — 과제/피드백**: `assignments.ts`(submitAssignment, getMyAssignments), `feedbacks.ts`(createFeedback, MM:SS 파싱), `TimelineFeedback` 컴포넌트(타임스탬프 클릭→VideoPlayer seekTo), 과제 목록/상세 페이지, VideoPlayer `seekToSeconds` prop 리팩터
+- **Phase 4 — 커뮤니티 게시판**: `posts.ts`/`comments.ts` CRUD 서버 액션, 커뮤니티 메인 페이지 전면 DB 연동(Sci-Fi 제거, 클린 테마), 게시물 상세/작성 페이지, 댓글 기능
+- 사이드바 네비게이션 역할별 분기(Admin: Students, Community / Student: Curriculum, Assignments, Community)
+- `ics` npm 패키지 설치
+
+### Fixed
+
+- `[student_id]` vs `[studentId]` dynamic route slug 충돌 해소(기존 목업 폴더 제거)
+
+---
+
 ## [v0.3.0] - 2026-03-10
 
 ### Fixed
