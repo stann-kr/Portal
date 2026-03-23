@@ -28,45 +28,51 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Cloudflare Workers: env.DB / 로컬: undefined(이후 createDb가 SQLite fallback 사용)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dbBinding = (process.env as any).DB as any;
+        // Cloudflare Workers 환경에서 D1 바인딩 획득 시도
+        // OpenNext/__env__ 및 process.env 모두 확인
+        let dbBinding = (process.env as any).DB;
+        
+        // 런타임에 따라 env.DB가 직접 전달되지 않을 때를 대비한 대체 확인
+        if (!dbBinding && typeof globalThis !== "undefined") {
+          dbBinding = (globalThis as any).env?.DB;
+        }
 
         const db = createDb(dbBinding);
 
-        let userList: (typeof profiles.$inferSelect)[];
         try {
-          userList = await db
+          const userList = await db
             .select()
             .from(profiles)
             .where(eq(profiles.email, credentials.email as string))
             .limit(1);
-        } catch (err) {
-          // D1 마이그레이션 미적용 시 테이블 없음 에러 발생
-          console.error("[auth] DB query failed. Run: ./dev.sh migrate", err);
-          throw new CredentialsSignin("Service temporarily unavailable.");
+
+          const user = userList[0];
+          if (!user || !user.passwordHash) {
+            console.error("[auth] User not found:", credentials.email);
+            return null; // CredentialsSignin 대신 null 반환 시 NextAuth가 표준 에러 처리
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password as string,
+            user.passwordHash,
+          );
+
+          if (!isValid) {
+            console.error("[auth] Password mismatch for:", credentials.email);
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.displayName,
+            role: (user.role as "admin" | "student") ?? "student",
+          };
+        } catch (err: any) {
+          console.error("[auth] Runtime error in authorize:", err);
+          // CallbackRouteError의 원인이 되는 하위 에러를 명확히 throw
+          throw new Error(err.message || "Database connection error");
         }
-
-        const user = userList[0];
-        if (!user || !user.passwordHash) {
-          throw new CredentialsSignin("Invalid credentials.");
-        }
-
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash,
-        );
-
-        if (!isValid) {
-          throw new CredentialsSignin("Invalid credentials.");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.displayName,
-          role: (user.role as "admin" | "student") ?? "student",
-        };
       },
     }),
   ],

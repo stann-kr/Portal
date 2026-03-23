@@ -17,12 +17,12 @@ export type DrizzleDb = ReturnType<typeof createDb>;
  * @param d1 - Cloudflare D1Database 바인딩 (프로덕션/Workers 환경)
  */
 export function createDb(d1?: any) {
-  // 프로덕션: D1 바인딩 사용
+  // 프로덕션: Cloudflare D1 바인딩 사용
   if (d1) {
+    // drizzle-orm/d1은 Edge Runtime에서 require()로 지연 로딩하는 것이 안전함
     const { drizzle } = require("drizzle-orm/d1");
-    return drizzle(d1, { schema }) as ReturnType<
-      typeof import("drizzle-orm/d1").drizzle<typeof schema>
-    >;
+    const db = drizzle(d1, { schema });
+    return db as any;
   }
 
   // 로컬 개발: Wrangler가 저장한 SQLite 파일에 직접 접근
