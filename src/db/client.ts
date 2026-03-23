@@ -42,10 +42,10 @@ export function createDb(d1?: any) {
  * Wrangler는 로컬 D1을 `.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite`에 저장.
  */
 function createLocalDb() {
-  const path = require(/* webpackIgnore: true */ "path");
-  const fs = require(/* webpackIgnore: true */ "fs");
-  const Database = require(/* webpackIgnore: true */ "better-sqlite3");
-  const { drizzle } = require(/* webpackIgnore: true */ "drizzle-orm/better-sqlite3");
+  const path = require(/* webpackIgnore: true */ "pa" + "th");
+  const fs = require(/* webpackIgnore: true */ "f" + "s");
+  const Database = require(/* webpackIgnore: true */ "better-sqlite" + "3");
+  const { drizzle } = require(/* webpackIgnore: true */ "drizzle-orm/better-sqlite" + "3");
 
   // Wrangler 로컬 D1 SQLite 파일 경로 탐색
   const wranglerD1Dir = path.join(

@@ -46,3 +46,6 @@ next-env.d.ts
 
 # private
 .docs/private
+
+# OpenNext / Cloudflare Workers 빌드 산출물
+.open-next/
