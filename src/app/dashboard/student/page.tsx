@@ -129,14 +129,22 @@ export default async function StudentDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-10 py-6">
       {/* 헤더 */}
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
-          Personal Portal
-          <span className="text-muted-foreground font-normal">/ Student</span>
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Track your progress and upcoming lessons.
-        </p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            Personal Portal
+            <span className="text-muted-foreground font-normal">/ Student</span>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Track your progress and upcoming lessons.
+          </p>
+        </div>
+        <Button asChild variant="outline" className="gap-2">
+          <Link href="/dashboard/student/notes">
+            <BookOpen className="w-4 h-4" />
+            1:1 수업 노트
+          </Link>
+        </Button>
       </header>
 
       {/* 현재 모듈 */}

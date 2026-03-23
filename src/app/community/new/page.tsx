@@ -14,13 +14,8 @@ import { Input } from "@/components/ui/input";
 import { createPost, type CreatePostState } from "@/lib/actions/posts";
 import TiptapEditor from "@/components/community/TiptapEditor";
 
-const CATEGORIES = [
-  { id: "gear-and-setup", label: "# gear-and-setup" },
-  { id: "track-id", label: "# track-id" },
-  { id: "terminal-info", label: "# terminal-info" },
-  { id: "general", label: "# general" },
-] as const;
-
+import { getCategories } from "@/lib/actions/categories";
+import { useEffect } from "react";
 export default function NewPostPage() {
   const searchParams = useSearchParams();
   const defaultCategory = searchParams.get("category") ?? "general";
@@ -31,6 +26,11 @@ export default function NewPostPage() {
   );
 
   const [contentHtml, setContentHtml] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    getCategories().then(setCategories);
+  }, []);
 
   return (
     <div className="max-w-3xl mx-auto py-6 space-y-6">
@@ -59,18 +59,18 @@ export default function NewPostPage() {
         <div className="space-y-1.5">
           <label className="text-sm font-medium">채널</label>
           <div className="flex gap-2 flex-wrap">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <label key={cat.id} className="cursor-pointer">
                 <input
                   type="radio"
                   name="category"
-                  value={cat.id}
-                  defaultChecked={cat.id === defaultCategory}
+                  value={cat.slug}
+                  defaultChecked={cat.slug === defaultCategory}
                   className="sr-only peer"
                   disabled={isPending}
                 />
                 <span className="px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground peer-checked:border-foreground peer-checked:text-foreground peer-checked:font-medium transition-colors hover:border-foreground/50">
-                  {cat.label}
+                  # {cat.name}
                 </span>
               </label>
             ))}

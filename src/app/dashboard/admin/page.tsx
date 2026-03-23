@@ -12,8 +12,9 @@ import { Suspense } from "react";
 import { UserPlus } from "lucide-react";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { getStudents, getStudentCount } from "@/lib/actions/students";
-import { StudentCard } from "@/components/admin/StudentCard";
+import { getStudentCount, getStudentRosterStats } from "@/lib/actions/students";
+import { format } from "date-fns";
+import { Settings, Trash2 } from "lucide-react";
 
 // ─────────────────────────────────────────────────
 // 통계 카드 (Suspense로 스트리밍)
@@ -35,25 +36,25 @@ async function StatsCards() {
           Pending Feedbacks
         </h3>
         <p className="text-3xl font-bold text-muted-foreground">—</p>
-        <p className="text-xs text-muted-foreground mt-1">Phase 3에서 연동</p>
+        <p className="text-xs text-muted-foreground mt-1">테이블에서 확인</p>
       </div>
       <div className="p-6 rounded-lg border border-border bg-card shadow-sm hover:bg-accent/5 transition-colors">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
           Upcoming Lessons
         </h3>
         <p className="text-3xl font-bold text-muted-foreground">—</p>
-        <p className="text-xs text-muted-foreground mt-1">Phase 2에서 연동</p>
+        <p className="text-xs text-muted-foreground mt-1">테이블에서 확인</p>
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────
-// Student Roster (Suspense로 스트리밍)
+// Student Roster (Table View) (Suspense로 스트리밍)
 // ─────────────────────────────────────────────────
 
 async function StudentRoster() {
-  const students = await getStudents();
+  const students = await getStudentRosterStats();
 
   if (students.length === 0) {
     return (
@@ -67,17 +68,62 @@ async function StudentRoster() {
   }
 
   return (
-    <ul className="space-y-2">
-      {students.map((s) => (
-        <StudentCard
-          key={s.id}
-          id={s.id}
-          email={s.email}
-          displayName={s.displayName}
-          createdAt={s.createdAt}
-        />
-      ))}
-    </ul>
+    <div className="rounded-md border bg-card overflow-hidden">
+      <table className="w-full text-sm text-left">
+        <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
+          <tr>
+            <th className="px-4 py-3">Student</th>
+            <th className="px-4 py-3">Current Module</th>
+            <th className="px-4 py-3">Next Lesson</th>
+            <th className="px-4 py-3 text-center">Pending Feedbacks</th>
+            <th className="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {students.map((st) => (
+            <tr key={st.id} className="hover:bg-muted/30 transition-colors">
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    {st.displayName?.[0]?.toUpperCase() || "S"}
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {st.displayName || "Unknown"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[150px]">
+                      {st.email}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-3 text-muted-foreground">
+                {st.currentModule}
+              </td>
+              <td className="px-4 py-3 text-muted-foreground">
+                {st.nextLessonDate ? format(st.nextLessonDate, "MMM d, h:mm a") : "미정"}
+              </td>
+              <td className="px-4 py-3 text-center">
+                {st.pendingFeedbackCount > 0 ? (
+                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                    {st.pendingFeedbackCount}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </td>
+              <td className="px-4 py-3 text-right">
+                <Button asChild variant="ghost" size="sm" className="h-8 px-2 gap-1 text-xs">
+                  <Link href={`/dashboard/admin/students/${st.id}`}>
+                    <Settings className="w-3.5 h-3.5" /> Manage
+                  </Link>
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

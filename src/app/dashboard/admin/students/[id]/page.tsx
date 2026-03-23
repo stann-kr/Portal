@@ -211,10 +211,20 @@ export default function StudentDetailPage() {
         >
           <ArrowLeft className="w-4 h-4" /> Admin Dashboard
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight mt-2">
-          {student.displayName ?? student.email}
-        </h1>
-        <p className="text-sm text-muted-foreground">{student.email}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight mt-2">
+              {student.displayName ?? student.email}
+            </h1>
+            <p className="text-sm text-muted-foreground">{student.email}</p>
+          </div>
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href={`/dashboard/admin/students/${studentId}/notes`}>
+              <BookOpen className="w-4 h-4" />
+              1:1 Notes 보드
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* 커리큘럼 */}

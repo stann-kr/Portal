@@ -9,8 +9,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { createDb } from "@/db/client";
-import { profiles } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { profiles, curriculums, lessons, assignments, feedbacks } from "@/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 
 /** 관리자 권한 체크 유틸 */
@@ -143,3 +143,68 @@ export async function getStudentById(studentId: string) {
     .limit(1);
   return rows[0] ?? null;
 }
+
+// ───────────────────────────────────────────────
+// 학생 통합 스탯 조회 (Admin Dashboard 용)
+// ───────────────────────────────────────────────
+
+export type StudentRosterStat = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  createdAt: Date | null;
+  currentModule: string | null;
+  nextLessonDate: Date | null;
+  pendingFeedbackCount: number;
+};
+
+/**
+ * 모든 학생 레코드와 함께 진행 상황 스탯을 병합하여 반환합니다.
+ */
+export async function getStudentRosterStats(): Promise<StudentRosterStat[]> {
+  await requireAdmin();
+  const db = createDb();
+
+  // 모든 학생 조회
+  const allStudents = await db.select().from(profiles).where(eq(profiles.role, "student")).orderBy(desc(profiles.createdAt));
+
+  // 모든 데이터 패치 (학생 수가 매우 많지 않음을 가정)
+  // 향후 성능 이슈 시 raw sql join으로 최적화
+  const allMods = await db.select().from(curriculums);
+  const allLess = await db.select().from(lessons).orderBy(asc(lessons.scheduledAt));
+  const allAssig = await db.select().from(assignments);
+  const allFeeds = await db.select().from(feedbacks);
+
+  const now = new Date();
+
+  return allStudents.map((st: any) => {
+    // 1. Current Module (완료되지 않은 가장 빠른 주차)
+    const stMods = allMods.filter((m: any) => m.studentId === st.id && !m.isCompleted);
+    stMods.sort((a: any, b: any) => a.weekNum - b.weekNum);
+    const currentModule = stMods.length > 0 ? `Week 0${stMods[0].weekNum}: ${stMods[0].title}` : "All Completed";
+
+    // 2. Next Lesson
+    const upcomingLess = allLess.filter((l: any) => l.studentId === st.id && new Date(l.scheduledAt) >= now);
+    const nextLessonDate = upcomingLess.length > 0 ? upcomingLess[0].scheduledAt : null;
+
+    // 3. Pending Feedbacks
+    // 학생의 애싸인먼트 중 코멘트(feedback)가 없는 것 개수
+    const stAssig = allAssig.filter((a: any) => a.studentId === st.id);
+    const pendingCount = stAssig.filter((a: any) => {
+      // 해당 assignmentId를 가진 피드백이 하나라도 있는지 확인
+      const hasFeedback = allFeeds.some((f: any) => f.assignmentId === a.id);
+      return !hasFeedback;
+    }).length;
+
+    return {
+      id: st.id,
+      email: st.email,
+      displayName: st.displayName,
+      createdAt: st.createdAt,
+      currentModule,
+      nextLessonDate: nextLessonDate ? new Date(nextLessonDate) : null,
+      pendingFeedbackCount: pendingCount,
+    };
+  });
+}
+

@@ -33,6 +33,7 @@ export default async function DashboardLayout({
             icon: LayoutDashboard,
           },
           { name: "Students", href: "/dashboard/admin", icon: Users },
+          { name: "Categories", href: "/dashboard/admin/categories", icon: Tag },
           { name: "Community", href: "/community", icon: MessageSquare },
         ]
       : [
@@ -60,9 +61,9 @@ export default async function DashboardLayout({
       <aside className="w-60 shrink-0 border-r border-border bg-muted/30 flex flex-col">
         {/* Brand */}
         <div className="h-14 px-5 border-b border-border flex items-center">
-          <span className="text-sm font-semibold text-foreground tracking-tight">
+          <Link href="/" className="text-sm font-semibold text-foreground tracking-tight hover:text-muted-foreground transition-colors">
             Stann Lumo Portal
-          </span>
+          </Link>
         </div>
 
         {/* Navigation */}

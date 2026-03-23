@@ -62,12 +62,38 @@ export const feedbacks = sqliteTable("feedbacks", {
   ),
 });
 
+export const categories = sqliteTable("categories", {
+  id: text("id").primaryKey(),
+  slug: text("slug").unique().notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
+
+export const privateNotes = sqliteTable("private_notes", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  authorId: text("author_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title").notNull(),
+  contentHtml: text("content_html").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
+
 export const posts = sqliteTable("posts", {
   id: text("id").primaryKey(),
   authorId: text("author_id")
     .references(() => profiles.id, { onDelete: "cascade" })
     .notNull(),
-  category: text("category").notNull(),
+  category: text("category").notNull(), /* TODO: nullable로 만들고 categoryId 포워딩 후 제거 고려. 일단 유지하며 기존 코드 폭파 방지 */
   title: text("title").notNull(),
   contentHtml: text("content_html").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).default(
@@ -88,3 +114,4 @@ export const comments = sqliteTable("comments", {
     sql`(strftime('%s', 'now'))`,
   ),
 });
+

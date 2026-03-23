@@ -17,39 +17,9 @@ import {
   Plus,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { getPostsByCategory } from "@/lib/actions/posts";
+import { getCategories } from "@/lib/actions/categories";
 
-// ─── 카테고리 설정 ────────────────────────────────
-
-const CATEGORIES = [
-  {
-    id: "gear-and-setup",
-    label: "gear-and-setup",
-    icon: Music2,
-    desc: "Studio routing & gear",
-  },
-  {
-    id: "track-id",
-    label: "track-id",
-    icon: Hash,
-    desc: "Track identification",
-  },
-  {
-    id: "terminal-info",
-    label: "terminal-info",
-    icon: Info,
-    desc: "Announcements",
-  },
-  {
-    id: "general",
-    label: "general",
-    icon: MessageSquare,
-    desc: "General discussion",
-  },
-] as const;
-
-type Category = (typeof CATEGORIES)[number]["id"];
+type Category = any; // type Category = Awaited<ReturnType<typeof getCategories>>[number];
 type Post = Awaited<ReturnType<typeof getPostsByCategory>>[number];
 
 // ─── 게시물 카드 ──────────────────────────────────
@@ -105,14 +75,24 @@ function PostCard({ post }: { post: Post }) {
 // ─── 메인 페이지 ────────────────────────────────
 
 export default function CommunityPage() {
-  const [activeCategory, setActiveCategory] =
-    useState<Category>("gear-and-setup");
+  const [activeCategory, setActiveCategory] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const currentCat = CATEGORIES.find((c) => c.id === activeCategory)!;
+  useEffect(() => {
+    getCategories().then((data) => {
+      setCategories(data);
+      if (data.length > 0 && !activeCategory) {
+        setActiveCategory(data[0].slug);
+      }
+    });
+  }, []);
+
+  const currentCat = categories.find((c) => c.slug === activeCategory);
 
   useEffect(() => {
+    if (!activeCategory) return;
     setLoading(true);
     getPostsByCategory(activeCategory).then((data) => {
       setPosts(data);
@@ -134,13 +114,12 @@ export default function CommunityPage() {
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
             Channels
           </p>
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = cat.id === activeCategory;
+          {categories.map((cat) => {
+            const isActive = cat.slug === activeCategory;
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => setActiveCategory(cat.slug)}
                 className={`w-full text-left flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
                   isActive
                     ? "bg-accent text-foreground font-medium"
@@ -148,7 +127,7 @@ export default function CommunityPage() {
                 }`}
               >
                 <Hash className="w-3.5 h-3.5 flex-shrink-0" />
-                {cat.label}
+                {cat.name}
               </button>
             );
           })}
@@ -161,9 +140,9 @@ export default function CommunityPage() {
         <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Hash className="w-4 h-4 text-muted-foreground" />
-            <span className="font-semibold text-sm">{currentCat.label}</span>
+            <span className="font-semibold text-sm">{currentCat?.name || "Loading..."}</span>
             <span className="text-muted-foreground text-xs hidden sm:block">
-              · {currentCat.desc}
+              · {currentCat?.description || ""}
             </span>
           </div>
           <Button asChild size="sm" className="gap-1.5">
@@ -205,19 +184,18 @@ export default function CommunityPage() {
 
         {/* 모바일 카테고리 탭 */}
         <div className="md:hidden flex border-t border-border bg-card">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = cat.id === activeCategory;
+          {categories.map((cat) => {
+            const isActive = cat.slug === activeCategory;
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => setActiveCategory(cat.slug)}
                 className={`flex-1 flex flex-col items-center py-2.5 text-[10px] gap-1 transition-colors ${
                   isActive ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                {cat.label.split("-")[0]}
+                <Hash className="w-4 h-4" />
+                {cat.name.slice(0, 5)}...
               </button>
             );
           })}
