@@ -2,9 +2,32 @@
 
 프로젝트 진행 중 발생하는 주요 버그, 아키텍처 결함, 및 Docker(M1/M2) 관련 환경 오류에 대한 원인 분석 및 해결 과정을 기록함.
 
-## [2026-03-24]
+## [v0.6.1] - 2026-03-24
 
-### 1. [프로덕션 빌드] `<Html> should not be imported` 내부 충돌 에러
+### Fixed
+
+- Cloudflare 빌드 환경(`npm ci`)에서 발생하는 의존성 충돌(`ERESOLVE`) 해결을 위해 `.npmrc`(`legacy-peer-deps=true`) 설정 추가
+- Next.js 버전 패치 (`15.3.2` → `15.3.9`)를 통해 보안 취약점 해결 및 OpenNext peer dependency 대등화
+
+---
+
+## [v0.6.0] - 2026-03-24]
+
+### 1. [NPM 설치] `ERESOLVE` 의존성 충돌 에러
+
+- **문제 현상 (Symptom)**: Cloudflare 빌드 환경의 `npm clean-install` (npm ci) 단계에서 `@opennextjs/cloudflare`와 `next` 버전 간의 Peer Dependency 불일치로 인해 `ERESOLVE` 에러 발생 및 빌드 중단.
+- **원인 분석 (Root Cause)**: `@opennextjs/cloudflare@1.17.3` 버전이 요구하는 `next` 버전 범위에 프로젝트의 `15.3.2`가 포함되지 않아 발생. `npm ci`는 `npm install`보다 엄격하게 의존성을 검사함.
+- **해결 방법 (Solution)**:
+  1. `.npmrc` 파일에 `legacy-peer-deps=true` 설정을 추가하여 빌드 환경에서의 엄격한 Peer Dep 검사 우회.
+  2. `next` 및 `eslint-config-next` 버전을 `15.3.9`로 업데이트하여 요구 사양 충족 및 보안 취약점 해결.
+
+### 2. [프로덕션 빌드] `@cloudflare/next-on-pages`의 Edge Runtime 강제 에러
+
+- **문제 현상 (Symptom)**: `npx @cloudflare/next-on-pages` 빌드 시, Node.js 런타임을 사용하는 모든 API 및 SSR 페이지에 대해 `export const runtime = 'edge'` 선언이 누락되었다는 에러와 함께 빌드 실패.
+- **원인 분석 (Root Cause)**: 해당 빌더는 모든 서버 로직을 Edge Function으로만 변환할 수 있는 구조적 한계가 있어, 복잡한 Node.js 의존성이 있는 앱 전체를 수동으로 Edge로 전환해야 하는 유지 보수 부채가 발생함.
+- **해결 방법 (Solution)**: Cloudflare의 새로운 권장 솔루션인 **OpenNext (`@opennextjs/cloudflare`)**로 전환함. `wrangler.toml`의 진입점을 `.open-next/worker.js`로 변경하고 `nodejs_compat` 플래그를 활용하여 별도의 Edge 선언 없이도 안정적인 배포 환경을 수립함.
+
+### 2. [프로덕션 빌드] `<Html> should not be imported` 내부 충돌 에러
 
 - **문제 현상 (Symptom)**: `docker compose run --rm web npm run build` (프로덕션 빌드) 단계에서 `Error: <Html> should not be imported outside of pages/_document.` 라는 App Router 호환성 충돌 에러가 발생하며 `/404` 페이지 렌더링에 실패함.
 - **원인 분석 (Root Cause)**: `docker-compose.yml`에 전역으로 `NODE_ENV=development`가 하드코딩되어 있어, `next build` 상황에서도 `next.config.ts` 내부의 `setupDevPlatform` 매크로가 불필요하게 실행됨. 이로 인해 프로덕션 컴파일러 내부에 dev 환경용 Edge Router 목업이 섞이면서 Next.js 내부 페이지 라우터 엔진(에러 폴백 구동기)이 붕괴되어 에러를 반환함.
