@@ -22,7 +22,8 @@ export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
   const [playedSeconds, setPlayedSeconds] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
-  const playerRef = useRef<ReactPlayer>(null);
+  const playerRef = useRef<any>(null);
+  const Player = ReactPlayer as any;
 
   useEffect(() => {
     if (typeof window !== "undefined") setIsClient(true);
@@ -55,11 +56,11 @@ export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
     <div className="space-y-3">
       {/* 플레이어 영역 */}
       <div className="relative rounded-xl overflow-hidden bg-black aspect-video border border-border group shadow-sm">
-        <ReactPlayer
+        <Player
           ref={playerRef}
           url={url}
           playing={playing}
-          onProgress={handleProgress}
+          onProgress={handleProgress as any}
           width="100%"
           height="100%"
           controls={true}

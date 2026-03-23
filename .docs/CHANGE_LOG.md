@@ -3,6 +3,22 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v0.5.0] - 2026-03-24
+
+### Changed
+
+- `assignments/[id]/page.tsx` 등 다수의 Client Component 안티패턴을 Server Component 데이터 패칭 구조로 개편함 (Next.js 15 App Router 권장 패턴 적용)
+- `admin/page.tsx`의 비대해진 로직을 `StatsCards`, `StudentRoster` 모듈로 분리하여(SoC) 유지보수성 향상함
+- `next.config.ts`에 `serverExternalPackages: ["better-sqlite3", "bcryptjs"]`를 선언하여 서버/클라이언트 번들링 충돌 현상을 해결함
+
+### Fixed
+
+- 프로젝트 전역의 `any` 암시적 타입 할당 에러(map 파라미터 등)를 모두 명시적 타입으로 수정해 strict 모드 타입 안전성을 확보함
+- `docker-compose.yml` 내부의 하드코딩된 `NODE_ENV=development`로 인해 Next.js 프로덕션 빌드 과정에서 `setupDevPlatform` 기반의 Edge 라우터 패치가 개입되어 발생하는 `<Html>` 렌더링 충돌 빌드 에러를 원천 차단함
+- Client Component 내부의 `useSearchParams` 훅을 `Suspense` 바운더리로 래핑하여 PRERENDER_ERROR(CSR Bailout) 빌드 에러 현상을 수정함
+
+---
+
 ## [v0.4.0] - 2026-03-10
 
 ### Added

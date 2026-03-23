@@ -60,7 +60,7 @@ export default async function StudentNotesPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {notes.map((note) => (
+              {notes.map((note: any) => (
                 <div key={note.id} className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
                   <div className="flex items-start justify-between">
                     <div>

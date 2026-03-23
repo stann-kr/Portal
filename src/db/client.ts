@@ -18,7 +18,7 @@ export type DrizzleDb = ReturnType<typeof createDb>;
  * 환경에 따라 적절한 Drizzle DB 인스턴스 반환.
  * @param d1 - Cloudflare D1Database 바인딩 (프로덕션/Workers 환경)
  */
-export function createDb(d1?: D1Database) {
+export function createDb(d1?: any) {
   // 프로덕션: D1 바인딩 사용
   if (d1) {
     const { drizzle } = require("drizzle-orm/d1");

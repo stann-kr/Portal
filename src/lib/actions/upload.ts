@@ -17,7 +17,7 @@ export async function uploadToR2(formData: FormData) {
   // Cloudflare R2 Binding Access (Cloudflare Pages/Workers Adapter 환경 가정)
   // 로컬 개발 시에는 MinIO와 같은 S3 호환 스토리지를 쓰거나 wrangler 프록시 사용.
   const env = process.env as any;
-  const bucket = env.BUCKET as R2Bucket;
+  const bucket = env.BUCKET as any;
 
   try {
     const arrayBuffer = await file.arrayBuffer();

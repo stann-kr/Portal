@@ -8,16 +8,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Terminal,
-  Music2,
   MessageSquare,
-  Info,
   Hash,
   Plus,
   ChevronRight,
 } from "lucide-react";
 import { getCategories } from "@/lib/actions/categories";
+import { getPostsByCategory } from "@/lib/actions/posts";
 
 type Category = any; // type Category = Awaited<ReturnType<typeof getCategories>>[number];
 type Post = Awaited<ReturnType<typeof getPostsByCategory>>[number];
@@ -94,8 +94,8 @@ export default function CommunityPage() {
   useEffect(() => {
     if (!activeCategory) return;
     setLoading(true);
-    getPostsByCategory(activeCategory).then((data) => {
-      setPosts(data);
+    getPostsByCategory(activeCategory as any).then((data) => {
+      setPosts(data as any);
       setLoading(false);
     });
   }, [activeCategory]);

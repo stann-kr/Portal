@@ -5,7 +5,7 @@
  */
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Send } from "lucide-react";
@@ -14,9 +14,10 @@ import { Input } from "@/components/ui/input";
 import { createPost, type CreatePostState } from "@/lib/actions/posts";
 import TiptapEditor from "@/components/community/TiptapEditor";
 
+
 import { getCategories } from "@/lib/actions/categories";
-import { useEffect } from "react";
-export default function NewPostPage() {
+
+function NewPostForm() {
   const searchParams = useSearchParams();
   const defaultCategory = searchParams.get("category") ?? "general";
 
@@ -123,5 +124,13 @@ export default function NewPostPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewPostPage() {
+  return (
+    <Suspense fallback={<div className="max-w-3xl mx-auto py-6 space-y-6 text-center text-muted-foreground">로딩 중...</div>}>
+      <NewPostForm />
+    </Suspense>
   );
 }

@@ -14,14 +14,14 @@ import { DeleteNoteButton } from "@/components/notes/DeleteNoteButton";
 export default async function AdminStudentNotesPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await auth();
   if (session?.user?.role !== "admin") {
     redirect("/dashboard/student");
   }
 
-  const studentId = params.id;
+  const { id: studentId } = await params;
   const student = await getStudentById(studentId);
   if (!student) redirect("/dashboard/admin");
 
@@ -68,7 +68,7 @@ export default async function AdminStudentNotesPage({
             </div>
           ) : (
             <div className="space-y-4">
-              {notes.map((note) => (
+              {notes.map((note: any) => (
                 <div key={note.id} className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
                   <div className="flex items-start justify-between">
                     <div>

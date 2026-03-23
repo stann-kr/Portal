@@ -44,7 +44,7 @@ export default async function AdminCategoriesPage() {
             </div>
           ) : (
             <ul className="space-y-3">
-              {categoriesList.map((cat) => (
+              {categoriesList.map((cat: any) => (
                 <li key={cat.id} className="p-4 rounded-lg border border-border bg-card shadow-sm flex items-start justify-between">
                   <div className="space-y-1">
                     <p className="font-semibold text-foreground flex items-center gap-2">

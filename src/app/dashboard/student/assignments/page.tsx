@@ -77,7 +77,7 @@ export default function AssignmentsPage() {
 
     const counts: Record<string, number> = {};
     await Promise.all(
-      data.map(async (a) => {
+      data.map(async (a: any) => {
         const fb = await getFeedbacksByAssignment(a.id);
         counts[a.id] = fb.length;
       }),

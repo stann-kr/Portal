@@ -1,80 +1,27 @@
 /**
  * @file src/app/dashboard/student/assignments/[id]/page.tsx
- * @description 과제 상세 페이지 — VideoPlayer + 타임라인 피드백.
- * Student: 영상 재생, 피드백 조회.
- * Admin: 피드백 작성 가능 (role 체크).
- * 핵심 기능: 타임스탬프 클릭 → VideoPlayer seekTo 연동.
+ * @description 과제 상세 페이지 — VideoPlayer + 타임라인 피드백 (Server Component).
+ * 데이터 패칭을 서버에서 처리하고, 복잡한 UI 상태는 클라이언트 컴포넌트로 위임합니다.
  */
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { VideoPlayer } from "@/components/player/VideoPlayer";
-import {
-  TimelineFeedback,
-  type FeedbackItem,
-} from "@/components/feedback/TimelineFeedback";
 import { getAssignmentById } from "@/lib/actions/assignments";
 import { getFeedbacksByAssignment } from "@/lib/actions/feedbacks";
 import { auth } from "@/auth";
+import { AssignmentDetailClient } from "./AssignmentDetailClient";
 
-type Assignment = Awaited<ReturnType<typeof getAssignmentById>>;
+export default async function AssignmentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: assignmentId } = await params;
 
-export default function AssignmentDetailPage() {
-  const params = useParams<{ id: string }>();
-  const assignmentId = params.id;
-
-  const [assignment, setAssignment] = useState<Assignment>(null);
-  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  // VideoPlayer에 seekTo 요청을 전달하기 위한 state
-  const [seekToSeconds, setSeekToSeconds] = useState<number | undefined>(
-    undefined,
-  );
-
-  const refresh = async () => {
-    const [a, fb, session] = await Promise.all([
-      getAssignmentById(assignmentId),
-      getFeedbacksByAssignment(assignmentId),
-      auth(),
-    ]);
-    setAssignment(a);
-    setFeedbackList(
-      fb.map((f) => ({
-        id: f.id,
-        timeMarker: f.timeMarker,
-        content: f.content,
-        createdAt: f.createdAt,
-      })),
-    );
-    setIsAdmin(session?.user?.role === "admin");
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 타임스탬프 클릭 → VideoPlayer seekTo
-  const handleSeek = (seconds: number) => {
-    setSeekToSeconds(seconds);
-    // 같은 값 재클릭 시 재트리거를 위해 살짝 delay 후 reset
-    setTimeout(() => setSeekToSeconds(undefined), 100);
-  };
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto py-6 space-y-4 animate-pulse">
-        <div className="h-6 w-24 bg-muted rounded" />
-        <div className="aspect-video rounded-xl bg-muted" />
-        <div className="h-40 rounded-xl bg-muted" />
-      </div>
-    );
-  }
+  const [assignment, fb, session] = await Promise.all([
+    getAssignmentById(assignmentId),
+    getFeedbacksByAssignment(assignmentId),
+    auth(),
+  ]);
 
   if (!assignment) {
     return (
@@ -89,6 +36,14 @@ export default function AssignmentDetailPage() {
       </div>
     );
   }
+
+  const feedbackList = fb.map((f: any) => ({
+    id: f.id,
+    timeMarker: f.timeMarker,
+    content: f.content,
+    createdAt: f.createdAt,
+  }));
+  const isAdmin = session?.user?.role === "admin";
 
   const submittedDate = assignment.submittedAt
     ? new Date(assignment.submittedAt).toLocaleDateString("ko-KR", {
@@ -115,25 +70,12 @@ export default function AssignmentDetailPage() {
         <p className="text-sm text-muted-foreground">제출일: {submittedDate}</p>
       </div>
 
-      {/* 2열 레이아웃 (lg 이상) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* 비디오 플레이어 */}
-        <div className="lg:sticky lg:top-6">
-          <VideoPlayer
-            url={assignment.mediaUrl}
-            seekToSeconds={seekToSeconds}
-          />
-        </div>
-
-        {/* 타임라인 피드백 */}
-        <TimelineFeedback
-          assignmentId={assignmentId}
-          feedbackList={feedbackList}
-          isAdmin={isAdmin}
-          onSeek={handleSeek}
-          onRefresh={refresh}
-        />
-      </div>
+      <AssignmentDetailClient
+        assignmentId={assignmentId}
+        mediaUrl={assignment.mediaUrl}
+        feedbackList={feedbackList}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }

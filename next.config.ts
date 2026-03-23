@@ -27,7 +27,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["better-sqlite3", "bcryptjs"],
 };
 
 export default nextConfig;

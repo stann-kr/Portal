@@ -30,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // setupDevPlatform()은 process.env에 D1Database 객체를 직접 주입함
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dbBinding = (process.env as any).DB as D1Database | undefined;
+        const dbBinding = (process.env as any).DB as any;
 
         const db = createDb(dbBinding);
 

@@ -27,8 +27,8 @@ export async function GET(
 
   // ICS 이벤트 생성
   const events: EventAttributes[] = lessonList
-    .filter((l) => l.scheduledAt !== null)
-    .map((l) => {
+    .filter((l: any) => l.scheduledAt !== null)
+    .map((l: any) => {
       const d = new Date(l.scheduledAt!);
       return {
         start: [
