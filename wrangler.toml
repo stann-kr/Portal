@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "portal-db"
-database_id = "your-database-id" # local dev will mock this, prod needs actual id
+database_id = "cde94290-17b3-4626-9a62-5bb83e68380b"
 migrations_dir = "drizzle"
 
 # R2 Storage Binding 

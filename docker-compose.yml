@@ -10,6 +10,7 @@ services:
       - .:/app:cached
       - node_modules:/app/node_modules
       - next_data:/app/.next
+      - wrangler_config:/root/.config/.wrangler
     env_file:
       - .env.local
     environment:
@@ -18,3 +19,4 @@ services:
 volumes:
   node_modules:
   next_data:
+  wrangler_config:
