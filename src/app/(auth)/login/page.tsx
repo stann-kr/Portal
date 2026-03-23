@@ -15,7 +15,7 @@ function getErrorMessage(error: string | undefined): string | null {
     Verification: "인증 링크가 만료되었습니다.",
     Default: "로그인 중 오류가 발생했습니다. 다시 시도해 주세요.",
   };
-  return map[error] ?? map.Default;
+  return map[error] ?? `알 수 없는 오류 (${error})`;
 }
 
 /**
