@@ -2,18 +2,39 @@
 
 프로젝트 진행 중 발생하는 주요 버그, 아키텍처 결함, 및 Docker(M1/M2) 관련 환경 오류에 대한 원인 분석 및 해결 과정을 기록함.
 
-## [v0.6.1] - 2026-03-24
+## [v0.6.2] - 2026-03-24
 
 ### Fixed
 
-- Cloudflare 빌드 환경(`npm ci`)에서 발생하는 의존성 충돌(`ERESOLVE`) 해결을 위해 `.npmrc`(`legacy-peer-deps=true`) 설정 추가
+- Cloudflare Workers 배포 시 `async_hooks`, `fs`, `path` 등 Node.js 내장 모듈을 찾지 못하는 오류 해결 (`compatibility_date`를 `2024-11-18`로 업데이트)
+- `wrangler.toml`에 `name = "portal"`을 명시하여 CI 빌드 환경과의 일관성 확보
+
+---
+
+## [v0.6.1] - 2026-03-24
+
+### Fixed
+- [x] `walkthrough.md` 업데이트
+- [x] Cloudflare 빌드 환경 NPM 의존성 충돌(ERESOLVE) 및 Lockfile 불일치(EUSAGE) 해결을 위해 `.npmrc`(`legacy-peer-deps=true`) 설정 추가
 - Next.js 버전 패치 (`15.3.2` → `15.3.9`)를 통해 보안 취약점 해결 및 OpenNext peer dependency 대등화
 
 ---
 
 ## [v0.6.0] - 2026-03-24]
 
-### 1. [NPM 설치] `ERESOLVE` 의존성 충돌 에러
+### 1. [배포] `Could not resolve "async_hooks"` 등 Node.js 내장 모듈 에러
+
+- **문제 현상 (Symptom)**: OpenNext 빌드 완료 후 `npx wrangler versions upload` 단계에서 `fs`, `path`, `crypto`, `async_hooks` 등 Node.js 빌트인 패키지를 해석하지 못해 배포 실패.
+- **원인 분석 (Root Cause)**: Cloudflare Workers의 `compatibility_date`가 구형(`2024-03-20`)인 경우, 최신 Node.js 호환성 기능(플래그 없이 `node:` 접두사 해석 등)이 활성화되지 않음.
+- **해결 방법 (Solution)**: `wrangler.toml`의 `compatibility_date`를 `2024-11-18` (또는 그 이상)으로 업데이트하여 런타임이 Node.js 내장 모듈을 자동으로 처리하도록 설정.
+
+### 2. [NPM 설치] `EUSAGE` (Lockfile out of sync) 에러
+
+- **문제 현상 (Symptom)**: Cloudflare 빌드 환경의 `npm ci` 단계에서 `package.json`과 `package-lock.json`이 일치하지 않아 `EUSAGE` 에러 발생. (예: `eslint-config-next@15.3.2 does not satisfy @15.3.9`)
+- **원인 분석 (Root Cause)**: `package.json`의 버전을 수동으로 수정하거나 `npm install` 없이 커밋할 경우, `npm ci`는 무결성 검사를 위해 설치를 중단함.
+- **해결 방법 (Solution)**: 로컬 Docker 컨테이너 내부에서 `npm install --legacy-peer-deps`를 실행하여 `package-lock.json`을 강제로 동기화한 후 커밋/푸시함.
+
+### 2. [NPM 설치] `ERESOLVE` 의존성 충돌 에러
 
 - **문제 현상 (Symptom)**: Cloudflare 빌드 환경의 `npm clean-install` (npm ci) 단계에서 `@opennextjs/cloudflare`와 `next` 버전 간의 Peer Dependency 불일치로 인해 `ERESOLVE` 에러 발생 및 빌드 중단.
 - **원인 분석 (Root Cause)**: `@opennextjs/cloudflare@1.17.3` 버전이 요구하는 `next` 버전 범위에 프로젝트의 `15.3.2`가 포함되지 않아 발생. `npm ci`는 `npm install`보다 엄격하게 의존성을 검사함.

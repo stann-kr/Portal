@@ -94,12 +94,5 @@ export async function deleteFeedback(feedbackId: string, assignmentId: string) {
 }
 
 // ───────────────────────────────────────────────
-// (종료 - 유틸리티 함수는 @/lib/utils/format.ts로 이동됨)
+// (종료)
 // ───────────────────────────────────────────────
-
-/** @param seconds - 타임스탬프 (초 단위) */
-export async function formatTimestamp(seconds: number): Promise<string> {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
