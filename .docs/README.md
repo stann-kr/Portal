@@ -85,6 +85,8 @@ docker compose up -d       # 백그라운드
 docker compose logs -f web # 로그 확인
 ```
 
+- **접속 주소**: [http://localhost:3004](http://localhost:3004)
+
 ### 패키지 관리
 
 ```bash
