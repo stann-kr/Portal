@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "db:migrate": "npx wrangler d1 migrations apply portal-db --local",
+    "db:migrate:remote": "npx wrangler d1 migrations apply portal-db --remote",
     "db:studio": "npx drizzle-kit studio",
     "db:generate": "npx drizzle-kit generate",
     "build": "next build",
