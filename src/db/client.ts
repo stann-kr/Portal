@@ -40,17 +40,20 @@ export function createDb(): DrizzleDb {
   // 프로덕션: OpenNext 환경에서 Cloudflare 바인딩 획득
   if (process.env.NODE_ENV !== "development") {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { getCloudflareContext } = require("@opennextjs/cloudflare");
       const ctx = getCloudflareContext();
+      
+      console.log("[db] Cloudflare Context keys:", Object.keys(ctx || {}));
+      
       const d1 = ctx?.env?.DB as D1Database | undefined;
 
       if (d1) {
         return createD1Db(d1);
+      } else {
+        console.error("[db] D1 binding 'DB' not found in ctx.env. Available env keys:", Object.keys(ctx?.env || {}));
       }
-    } catch {
-      // getCloudflareContext를 사용할 수 없는 환경 (테스트, 빌드 타임 등)
-      console.warn("[db] getCloudflareContext not available, attempting fallback");
+    } catch (e: any) {
+      console.error("[db] Failed to get Cloudflare context:", e.message);
     }
   }
 
@@ -59,10 +62,13 @@ export function createDb(): DrizzleDb {
     return createLocalDb();
   }
 
+  // 빌드 타임 혹은 환경 변수 누락 시
+  console.warn("[db] Falling through to error throw - binding or context missing");
+
   throw new Error(
-    "[db] D1 Database binding not found.\n" +
-      "Production: Make sure DB binding is configured in wrangler.toml\n" +
-      "Local: Run: ./dev.sh migrate",
+    "[db] D1 Database binding 'DB' not found.\n" +
+      "1. Ensure 'DB' binding exists in wrangler.toml\n" +
+      "2. Ensure you are running in a Cloudflare Workers environment."
   );
 }
 
