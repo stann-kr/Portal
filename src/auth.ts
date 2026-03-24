@@ -27,6 +27,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        console.log("[auth] Authorize attempt for:", credentials.email);
+        console.log("[auth] AUTH_SECRET present:", !!process.env.AUTH_SECRET);
+
         try {
           // createDb()가 프로덕션/로컬 환경을 자동 판별하여 올바른 드라이버 반환
           const db = createDb();
