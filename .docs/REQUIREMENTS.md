@@ -56,7 +56,7 @@
 | **Editor**         | Tiptap                                                                            |
 | **Media**          | react-player                                                                      |
 | **Calendar**       | `ics` 라이브러리                                                                  |
-| **Dev Env**        | Apple Silicon Mac, 100% Docker (`linux/arm64`)                                    |
+| **Deployment**      | Cloudflare Workers (OpenNext) + **Custom Domain (portal.stann.kr)**               |
 
 ---
 
@@ -76,8 +76,8 @@
 
 ## 5. 추가 개발 예정 (Phase 5)
 
-- 프로필 이미지 / 비밀번호 변경 (본인)
-- 알림 시스템 (새 피드백·레슨·게시물)
-- Cloudflare R2 이미지 업로드 통합
-- 대시보드 차트 (커리큘럼 완료율, 레슨 히스토리)
-- 모바일 완전 반응형 최적화
+- [ ] 프로필 이미지 / 비밀번호 변경 (본인)
+- [ ] 알림 시스템 (새 피드백·레슨·게시물)
+- [ ] Cloudflare R2 이미지 업로드 통합
+- [x] 대시보드 차트 (커리큘럼 완료율, 레슨 히스토리) ✅ 구현 완료 (ProgressCharts)
+- [ ] 모바일 완전 반응형 최적화
