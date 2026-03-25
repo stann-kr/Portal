@@ -5,7 +5,6 @@ import {
   LogOut,
   BookOpen,
   FileVideo,
-  Users,
   Tag,
   CalendarDays,
   Disc3,
@@ -38,7 +37,6 @@ export default async function DashboardLayout({
             href: "/dashboard/admin",
             icon: LayoutDashboard,
           },
-          { name: "Students", href: "/dashboard/admin", icon: Users },
           {
             name: "Categories",
             href: "/dashboard/admin/categories",
@@ -77,6 +75,11 @@ export default async function DashboardLayout({
             name: "Assignments",
             href: "/dashboard/student/assignments",
             icon: FileVideo,
+          },
+          {
+            name: "Notes",
+            href: "/dashboard/student/notes",
+            icon: BookOpen,
           },
           { name: "Community", href: "/community", icon: MessageSquare },
           {

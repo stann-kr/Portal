@@ -49,6 +49,32 @@ export async function getQnaThreads() {
 }
 
 /**
+ * 특정 학생의 Q&A 스레드 목록 조회 (어드민 전용).
+ * @param studentId 조회 대상 학생 ID
+ */
+export async function getQnaThreadsByStudent(studentId: string) {
+  const session = await requireAuth();
+  if (session.user.role !== "admin") throw new Error("Unauthorized");
+
+  const db = createDb();
+  return db
+    .select({
+      id: qnaThreads.id,
+      title: qnaThreads.title,
+      status: qnaThreads.status,
+      createdAt: qnaThreads.createdAt,
+      updatedAt: qnaThreads.updatedAt,
+      studentId: qnaThreads.studentId,
+      studentName: profiles.displayName,
+      studentEmail: profiles.email,
+    })
+    .from(qnaThreads)
+    .leftJoin(profiles, eq(qnaThreads.studentId, profiles.id))
+    .where(eq(qnaThreads.studentId, studentId))
+    .orderBy(desc(qnaThreads.updatedAt));
+}
+
+/**
  * 스레드 단건 + 답변 목록 조회.
  */
 export async function getQnaThread(threadId: string) {

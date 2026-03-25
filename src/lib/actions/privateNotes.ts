@@ -86,7 +86,8 @@ export async function createPrivateNote(targetStudentId: string, _prev: CreateNo
       contentHtml,
     });
     
-    // Admin 뷰와 Student 뷰 양쪽 모두 갱신
+    // Admin 뷰(탭 통합 포함)와 Student 뷰 양쪽 모두 갱신
+    revalidatePath(`/dashboard/admin/students/${targetStudentId}`);
     revalidatePath(`/dashboard/admin/students/${targetStudentId}/notes`);
     revalidatePath(`/dashboard/student/notes`);
     
@@ -115,6 +116,7 @@ export async function deletePrivateNote(noteId: string) {
   }
 
   await db.delete(privateNotes).where(eq(privateNotes.id, noteId));
+  revalidatePath(`/dashboard/admin/students/${targetNote.studentId}`);
   revalidatePath(`/dashboard/admin/students/${targetNote.studentId}/notes`);
   revalidatePath(`/dashboard/student/notes`);
 }
