@@ -182,6 +182,44 @@ export const diggingTracks = sqliteTable("digging_tracks", {
 });
 
 /**
+ * Phase 6: 1:1 Q&A 게시판.
+ * - OPEN: 미답변
+ * - ANSWERED: 답변 완료
+ * - CLOSED: 종료
+ */
+export type QnaStatus = "OPEN" | "ANSWERED" | "CLOSED";
+
+export const qnaThreads = sqliteTable("qna_threads", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title").notNull(),
+  status: text("status").$type<QnaStatus>().default("OPEN").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
+
+export const qnaReplies = sqliteTable("qna_replies", {
+  id: text("id").primaryKey(),
+  threadId: text("thread_id")
+    .references(() => qnaThreads.id, { onDelete: "cascade" })
+    .notNull(),
+  authorId: text("author_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  contentHtml: text("content_html").notNull(),
+  attachmentUrl: text("attachment_url"),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
+
+/**
  * Phase 4: 개인 캘린더 이벤트.
  * - LESSON: 수업 일정 (파란색)
  * - PRACTICE: 연습 일정 (초록색)

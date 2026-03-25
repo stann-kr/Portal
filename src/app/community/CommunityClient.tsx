@@ -20,6 +20,7 @@ import {
   Megaphone,
   MessageSquare,
   Music2,
+  ArrowLeft,
 } from "lucide-react";
 import { getCategories } from "@/lib/actions/categories";
 import { getPostsByCategory, getPostsByBoardType } from "@/lib/actions/posts";
@@ -154,7 +155,14 @@ export default function CommunityClient({ isAdmin }: CommunityClientProps) {
     <div className="flex h-[calc(100vh-57px)] overflow-hidden bg-background">
       {/* 사이드바 */}
       <aside className="hidden md:flex w-56 border-r border-border flex-col bg-card">
-        <div className="p-4 border-b border-border">
+        <div className="p-4 border-b border-border space-y-3">
+          <Link
+            href="/dashboard/student"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            대시보드로
+          </Link>
           <div className="flex items-center gap-2 font-semibold text-foreground">
             <Terminal className="w-4 h-4" />
             Community

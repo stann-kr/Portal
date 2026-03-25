@@ -9,7 +9,9 @@ import {
   Tag,
   CalendarDays,
   Disc3,
+  HelpCircle,
 } from "lucide-react";
+import { getOpenThreadCount } from "@/lib/actions/qna";
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export default async function DashboardLayout({
   }
 
   const role = session.user.role ?? "student";
+  const openQnaCount = await getOpenThreadCount().catch(() => 0);
 
   const navItems =
     role === "admin"
@@ -47,6 +50,7 @@ export default async function DashboardLayout({
             icon: CalendarDays,
           },
           { name: "Community", href: "/community", icon: MessageSquare },
+          { name: "Q&A", href: "/dashboard/qna", icon: HelpCircle },
         ]
       : [
           {
@@ -75,6 +79,12 @@ export default async function DashboardLayout({
             icon: FileVideo,
           },
           { name: "Community", href: "/community", icon: MessageSquare },
+          {
+            name: "Q&A",
+            href: "/dashboard/qna",
+            icon: HelpCircle,
+            badge: openQnaCount,
+          },
         ];
 
   return (
@@ -92,6 +102,7 @@ export default async function DashboardLayout({
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const badge = ("badge" in item ? item.badge : 0) ?? 0;
             return (
               <Link
                 key={item.name}
@@ -99,7 +110,12 @@ export default async function DashboardLayout({
                 className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                {item.name}
+                <span className="flex-1">{item.name}</span>
+                {badge > 0 && (
+                  <span className="min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
