@@ -61,4 +61,10 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  /**
+   * Cloudflare Workers 및 리버스 프록시 환경에서의 호스트 신뢰 설정.
+   * 미설정 시 NextAuth가 unknown host로 판단하여 /api/auth/callback/credentials로
+   * redirect loop가 발생함.
+   */
+  trustHost: true,
 } satisfies NextAuthConfig;

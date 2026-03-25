@@ -18,8 +18,8 @@ case "$1" in
     docker compose run --rm -p 4983:4983 web npm run db:studio
     ;;
   "build")
-    echo "🏗️ Building for Cloudflare Pages..."
-    docker compose run --rm web npm run build:pages
+    echo "🏗️ Building for Cloudflare Workers (OpenNext)..."
+    docker compose run --rm web npm run build:worker
     ;;
   "shell")
     echo "🐚 Opening Container Shell..."

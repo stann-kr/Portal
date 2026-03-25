@@ -25,7 +25,11 @@ type Category = (typeof VALID_CATEGORIES)[number];
 
 async function requireAuth() {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  console.log("[posts] Checking auth session. User ID exists:", !!session?.user?.id);
+  if (!session?.user?.id) {
+    console.warn("[posts] Authorization failed: Session or User ID missing");
+    throw new Error("Unauthorized");
+  }
   return session;
 }
 

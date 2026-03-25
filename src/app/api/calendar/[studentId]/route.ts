@@ -8,7 +8,8 @@ import { createEvent, type EventAttributes } from "ics";
 import { getLessonsForCalendar } from "@/lib/actions/lessons";
 import { getStudentById } from "@/lib/actions/students";
 
-export const runtime = "nodejs";
+
+
 
 export async function GET(
   _req: NextRequest,

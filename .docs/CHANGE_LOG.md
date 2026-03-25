@@ -91,6 +91,20 @@
 - `open-next.config.ts` 파일 신규 추가 (OpenNext 빌더 최소 설정)
 - `.gitignore`에 `.open-next/` 빌드 산출물 경로 추가
 
+## [v0.7.0] - 2026-03-24
+
+### Added
+
+- **관리자 계정 생성 유틸리티**: `src/scripts/setup-admin.ts` 추가 (bcrypt 해싱 기능 포함).
+- **커스텀 도메인**: `portal.stann.kr` 연결 및 `wrangler.toml` 라우트 설정 완료.
+- **인증 안정화**: `AUTH_URL` 환경변수 주입 및 `trustHost: true` 설정을 통한 리다이렉트 루프 방지.
+
+### Fixed
+
+- **D1 바인딩 런타임 오류**: OpenNext 환경에서 `process.env.DB` 접근 불가 문제를 `getCloudflareContext().env.DB` 방식으로 전면 수정하여 `CallbackRouteError` 해결.
+- **미들웨어 루프**: 인증 콜백 경로(`/api/auth`)를 미들웨어 `matcher`에서 제외하여 무한 리다이렉트 원천 차단.
+- **개발 서버 크래시**: `next-on-pages` 관련 구식 참조 코드를 제거하여 로컬 Docker 환경 안정화.
+
 ### Fixed
 
 - 기존 배포 어댑터가 요구하던 모든 라우트 파일(SSR 페이지, API 라우트 등)에 `export const runtime = 'edge'` 강제 선언 문제 해소
