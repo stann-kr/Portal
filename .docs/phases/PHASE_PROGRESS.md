@@ -109,16 +109,37 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 
 ---
 
-## Phase 5 — 디깅(Digging) 게시판 ⏳ 예정
+## Phase 5 — 디깅(Digging) 게시판 ✅ 완료
 
-**목표**: TanStack Table + Wavesurfer.js + 카멜롯 키 믹싱 로직
+**시작일**: 2026-03-25
+**완료일**: 2026-03-25
 
-**선행 조건**: Phase 1 R2 인프라 완료 ✅
+### 확정 설계 (원안에서 변경)
+- 오디오 파일 업로드 ❌ → 링크 첨부 방식으로 변경
+- Wavesurfer.js ❌ → 불필요 (링크 기반)
+- 고정 컬럼 ❌ → 동적 컬럼 (digging_columns + JSON values)
+- 학생 개인 전용 게시판 (isDefault 컬럼 삭제 불가)
 
-**주요 변경**:
-- `diggingTracks` 테이블 신규 추가 (Drizzle Migration)
-- Fuzzy Key Mixing 카멜롯 휠 유틸
-- Persistent Bottom Player (AudioPlayerContext)
+### 완료 항목
+- [x] `@tanstack/react-table` 패키지 설치
+- [x] `src/db/schema.ts` — `diggingColumns`, `diggingTracks` 테이블 추가
+- [x] `drizzle/0005_digging_board.sql` — 마이그레이션 생성 및 로컬 적용
+- [x] `src/lib/actions/digging.ts` — CRUD + `fetchLinkMeta` (YouTube/SoundCloud oEmbed, OG 파싱)
+- [x] `src/components/digging/StarRating.tsx` — 호버/선택 별점 컴포넌트
+- [x] `src/components/digging/CamelotPicker.tsx` — 카멜롯 휠 키 선택기 (1A~12B)
+- [x] `src/components/digging/AddTrackDialog.tsx` — 트랙 추가 + 링크 자동 추출
+- [x] `src/components/digging/ColumnManager.tsx` — 컬럼 추가/삭제 관리
+- [x] `src/components/digging/DiggingBoard.tsx` — TanStack Table + 날짜 범위 필터 + 날짜별 그룹핑 + 인라인 셀 편집
+- [x] `src/app/dashboard/student/digging/page.tsx` — 학생 개인 디깅 보드
+- [x] `src/app/dashboard/admin/students/[id]/digging/page.tsx` — 어드민 읽기 전용 뷰
+- [x] 사이드바에 Digging 메뉴 추가
+- [x] 어드민 학생 상세 페이지에 "Digging 보드" 링크 추가
+
+### 기본 컬럼 (첫 방문 시 자동 시드)
+- 트랙명(text), 아티스트(text), 감상평(textarea), 선호도(select), 별점(rating), 링크(link)
+
+### 참고 파일
+- `CHANGE_LOG.md` → v1.2.0 항목
 
 ---
 
@@ -141,5 +162,5 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 | Phase 2 — 대시보드 고도화 | ✅ 완료 | 2026-03-25 |
 | Phase 3 — 커뮤니티 고도화 | ✅ 완료 | 2026-03-25 |
 | Phase 4 — 개인 캘린더 | ✅ 완료 | 2026-03-25 |
-| Phase 5 — 디깅 게시판 | ⏳ 예정 | — |
+| Phase 5 — 디깅 게시판 | ✅ 완료 | 2026-03-25 |
 | Phase 6 — Q&A 게시판 | ⏳ 예정 | — |

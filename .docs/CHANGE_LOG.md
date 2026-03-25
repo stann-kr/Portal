@@ -3,6 +3,32 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v1.2.0] - 2026-03-25
+
+### Added
+
+- `src/components/digging/DiggingBoard.tsx` — TanStack Table + 날짜 범위 필터 + 날짜별 그룹핑 + 인라인 셀 편집
+- `src/components/digging/AddTrackDialog.tsx` — 트랙 추가 다이얼로그 (링크 oEmbed 자동 추출)
+- `src/components/digging/ColumnManager.tsx` — 컬럼 추가/삭제 관리 다이얼로그
+- `src/components/digging/StarRating.tsx` — 호버/클릭 별점 컴포넌트
+- `src/components/digging/CamelotPicker.tsx` — 카멜롯 휠 키 선택기
+- `src/lib/actions/digging.ts` — 디깅 CRUD + fetchLinkMeta (YouTube/SoundCloud oEmbed, OG 파싱)
+- `drizzle/0005_digging_board.sql` — digging_columns / digging_tracks 마이그레이션
+- `src/app/dashboard/student/digging/page.tsx` — 학생 개인 디깅 보드 페이지
+- `src/app/dashboard/admin/students/[id]/digging/page.tsx` — 어드민 읽기 전용 뷰
+
+### Changed
+
+- `src/db/schema.ts` — diggingColumns, diggingTracks 테이블 추가
+- `src/app/dashboard/layout.tsx` — 학생 사이드바에 Digging 메뉴 추가
+- `src/app/dashboard/admin/students/[id]/page.tsx` — 학생 상세에 Digging 보드 링크 추가
+
+### Dependencies
+
+- `@tanstack/react-table` 추가
+
+---
+
 ## [v1.1.0] - 2026-03-25
 
 ### Added

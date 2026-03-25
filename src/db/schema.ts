@@ -132,6 +132,56 @@ export const comments = sqliteTable("comments", {
 });
 
 /**
+ * Phase 5: 디깅 게시판 — 컬럼 정의 (유저별 커스텀).
+ * columnType: text / textarea / number / select / rating / link / camelot_key
+ * isDefault=true → 삭제 불가 (기본 제공 컬럼).
+ * options: select 타입일 때 JSON 배열 (예: '["좋음","보통","별로"]')
+ */
+export type DiggingColumnType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "select"
+  | "rating"
+  | "link"
+  | "camelot_key";
+
+export const diggingColumns = sqliteTable("digging_columns", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  columnType: text("column_type")
+    .$type<DiggingColumnType>()
+    .default("text")
+    .notNull(),
+  options: text("options"), // JSON array — select 타입 전용
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isDefault: integer("is_default", { mode: "boolean" }).default(false).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
+
+/**
+ * Phase 5: 디깅 게시판 — 트랙 데이터.
+ * values: JSON 객체 { [columnId]: value } — 모든 컬럼 값 저장.
+ * linkUrl: 음악 링크 (YouTube / SoundCloud / Spotify 등).
+ */
+export const diggingTracks = sqliteTable("digging_tracks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  linkUrl: text("link_url"),
+  values: text("values").default("{}").notNull(), // JSON
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
+
+/**
  * Phase 4: 개인 캘린더 이벤트.
  * - LESSON: 수업 일정 (파란색)
  * - PRACTICE: 연습 일정 (초록색)

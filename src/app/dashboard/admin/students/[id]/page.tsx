@@ -20,6 +20,7 @@ import {
   Download,
   CheckCircle2,
   Circle,
+  Disc3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -218,12 +219,20 @@ export default function StudentDetailPage() {
             </h1>
             <p className="text-sm text-muted-foreground">{student.email}</p>
           </div>
-          <Button asChild variant="outline" size="sm" className="gap-2">
-            <Link href={`/dashboard/admin/students/${studentId}/notes`}>
-              <BookOpen className="w-4 h-4" />
-              1:1 Notes 보드
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link href={`/dashboard/admin/students/${studentId}/digging`}>
+                <Disc3 className="w-4 h-4" />
+                Digging 보드
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link href={`/dashboard/admin/students/${studentId}/notes`}>
+                <BookOpen className="w-4 h-4" />
+                1:1 Notes 보드
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 

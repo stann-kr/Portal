@@ -8,6 +8,7 @@ import {
   Users,
   Tag,
   CalendarDays,
+  Disc3,
 } from "lucide-react";
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
@@ -57,6 +58,11 @@ export default async function DashboardLayout({
             name: "Calendar",
             href: "/dashboard/calendar",
             icon: CalendarDays,
+          },
+          {
+            name: "Digging",
+            href: "/dashboard/student/digging",
+            icon: Disc3,
           },
           {
             name: "Curriculum",
