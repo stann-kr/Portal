@@ -1,165 +1,148 @@
 /**
  * @file src/app/dashboard/student/page.tsx
- * @description Student Dashboard — DB 연동 버전.
- * - 현재 진행 중인 모듈 (미완료 중 최소 주차)
- * - 다음 예정 레슨
- * - 최근 피드백 (Phase 3 이후 연동)
+ * @description 학생 대시보드 홈 — Phase 2 고도화 버전.
+ * 3컬럼 위젯 그리드 레이아웃 (반응형: 모바일 1컬럼, 태블릿 2컬럼, 데스크탑 3컬럼).
+ * 각 위젯은 독립적인 Suspense 경계로 병렬 스트리밍.
  */
-import { auth } from "@/auth";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
-import { PlayCircle, CalendarDays, BookOpen } from "lucide-react";
+import { BookOpen, PlayCircle } from "lucide-react";
+import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { getCurrentModule, getCurriculumByStudent } from "@/lib/actions/curriculum";
-import { getNextLesson } from "@/lib/actions/lessons";
+import {
+  getCurriculumByStudent,
+  getCurrentModule,
+} from "@/lib/actions/curriculum";
 import { ProgressCharts } from "@/components/dashboard/ProgressCharts";
+import { ProfileCourseWidget } from "@/components/dashboard/ProfileCourseWidget";
+import {
+  UpcomingLessonsWidget,
+  UpcomingLessonsWidgetSkeleton,
+} from "@/components/dashboard/UpcomingLessonsWidget";
+import { DiggingAnalyticsWidget } from "@/components/dashboard/DiggingAnalyticsWidget";
+import { PendingQnaWidget } from "@/components/dashboard/PendingQnaWidget";
 
-// ─────────────────────────────────────────────────
-// 현재 모듈 섹션 (시각화 포함)
-// ─────────────────────────────────────────────────
+// ─── 현재 모듈 숏컷 ──────────────────────────────
 
-async function DashboardOverview({ studentId, displayName }: { studentId: string; displayName: string }) {
-  const allModules = await getCurriculumByStudent(studentId);
-  const completedCount = allModules.filter((m: { isCompleted: boolean }) => m.isCompleted).length;
-  const totalCount = allModules.length;
-  
+async function CurrentModuleCard({ studentId }: { studentId: string }) {
   const currentMod = await getCurrentModule(studentId);
+  if (!currentMod) return null;
 
   return (
-    <div className="space-y-8">
-      {/* 1. 시각화 차트 및 요약 */}
-      <ProgressCharts 
-        completedCount={completedCount} 
-        totalCount={totalCount} 
-        displayName={displayName} 
-      />
-
-      {/* 2. 현재 진행 중인 모듈 숏컷 */}
-      {currentMod && (
-        <section className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-tight text-muted-foreground uppercase flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Next Activity
-            </h2>
-            <Link href="/dashboard/student/curriculum" className="text-xs text-primary hover:underline">
-              전체 커리큘럼 보기
-            </Link>
-          </div>
-          <div className="flex items-center justify-between p-6 rounded-xl border border-primary/20 bg-primary/5">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
-                WEEK {String(currentMod.weekNum).padStart(2, "0")}
-              </p>
-              <h3 className="font-medium text-foreground text-lg">{currentMod.title}</h3>
-            </div>
-            <Button asChild variant="default" className="gap-2">
-              <Link href="/dashboard/student/curriculum">
-                <PlayCircle className="w-4 h-4" />
-                Resume
-              </Link>
-            </Button>
-          </div>
-        </section>
-      )}
+    <div className="flex items-center justify-between p-5 rounded-xl border border-primary/20 bg-primary/5">
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold text-primary uppercase tracking-widest">
+          WEEK {String(currentMod.weekNum).padStart(2, "0")}
+        </p>
+        <h3 className="font-semibold text-foreground">{currentMod.title}</h3>
+      </div>
+      <Button
+        asChild
+        variant="default"
+        size="sm"
+        className="gap-2 flex-shrink-0"
+      >
+        <Link href="/dashboard/student/curriculum">
+          <PlayCircle className="w-4 h-4" />
+          Resume
+        </Link>
+      </Button>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────
-// 다음 레슨 섹션
-// ─────────────────────────────────────────────────
+// ─── 진행률 + 스파크라인 섹션 ───────────────────
 
-async function NextLessonSection({ studentId }: { studentId: string }) {
-  const lesson = await getNextLesson(studentId);
-
-  if (!lesson) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-muted/10 text-muted-foreground">
-        <p className="text-sm">예정된 레슨이 없습니다.</p>
-      </div>
-    );
-  }
-
-  const date = new Date(lesson.scheduledAt!);
-  const month = date
-    .toLocaleDateString("en-US", { month: "short" })
-    .toUpperCase();
-  const day = date.getDate();
-  const time = date.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  // .ics 다운로드 링크
-  const icsUrl = `/api/calendar/${studentId}`;
+async function ProgressSection({
+  studentId,
+  displayName,
+}: {
+  studentId: string;
+  displayName: string;
+}) {
+  const allModules = await getCurriculumByStudent(studentId);
+  const completedCount = allModules.filter(
+    (m: { isCompleted: boolean }) => m.isCompleted,
+  ).length;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-5">
-        <div className="w-16 h-16 rounded-md bg-muted flex flex-col items-center justify-center border border-border flex-shrink-0">
-          <span className="text-[10px] font-bold text-muted-foreground">
-            {month}
-          </span>
-          <span className="text-2xl font-bold">{day}</span>
-        </div>
-        <div className="space-y-0.5 flex-1">
-          <p className="font-semibold text-foreground">1:1 Feedback Session</p>
-          <p className="text-sm text-muted-foreground">
-            {time} KST / Online Studio
-          </p>
-        </div>
-        <a href={icsUrl} download>
-          <Button variant="ghost" size="sm" className="gap-1 text-xs">
-            <CalendarDays className="w-3 h-3" />
-            .ics
-          </Button>
-        </a>
-      </div>
-    </div>
+    <ProgressCharts
+      completedCount={completedCount}
+      totalCount={allModules.length}
+      displayName={displayName}
+    />
   );
 }
 
-// ─────────────────────────────────────────────────
-// 스켈레톤
-// ─────────────────────────────────────────────────
+// ─── 프로필 섹션 ─────────────────────────────────
 
-function ModuleSkeleton() {
-  return <div className="h-24 rounded-lg border bg-muted animate-pulse" />;
-}
-function LessonSkeleton() {
-  return <div className="h-16 rounded-lg bg-muted animate-pulse" />;
+async function ProfileSection({
+  studentId,
+  displayName,
+  email,
+}: {
+  studentId: string;
+  displayName: string;
+  email: string;
+}) {
+  const allModules = await getCurriculumByStudent(studentId);
+  const completedCount = allModules.filter(
+    (m: { isCompleted: boolean }) => m.isCompleted,
+  ).length;
+
+  return (
+    <ProfileCourseWidget
+      displayName={displayName}
+      email={email}
+      completedCount={completedCount}
+      totalCount={allModules.length}
+    />
+  );
 }
 
-// ─────────────────────────────────────────────────
-// 메인 페이지
-// ─────────────────────────────────────────────────
+// ─── 스켈레톤 ────────────────────────────────────
+
+function CardSkeleton({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`rounded-2xl border border-border bg-card animate-pulse ${className}`}
+    />
+  );
+}
+
+// ─── 메인 페이지 ─────────────────────────────────
 
 export default async function StudentDashboard() {
   const session = await auth();
-  const role = session?.user?.role;
+  if (session?.user?.role !== "student") redirect("/dashboard/admin");
 
-  if (role !== "student") {
-    redirect("/dashboard/admin");
-  }
-
-  const studentId = session!.user!.id!;
+  const studentId = session.user.id!;
+  const displayName = session.user.name || "";
+  const email = session.user.email || "";
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 py-6">
+    <div className="max-w-7xl mx-auto space-y-8 py-6">
       {/* 헤더 */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Personal Portal
-            <span className="text-muted-foreground font-normal">/ Student</span>
+            <span className="text-muted-foreground font-normal">
+              {" "}
+              / Student
+            </span>
           </h1>
           <p className="text-sm text-muted-foreground">
             Track your progress and upcoming lessons.
           </p>
         </div>
-        <Button asChild variant="outline" className="gap-2">
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="gap-2 self-start sm:self-auto"
+        >
           <Link href="/dashboard/student/notes">
             <BookOpen className="w-4 h-4" />
             1:1 수업 노트
@@ -167,38 +150,46 @@ export default async function StudentDashboard() {
         </Button>
       </header>
 
-      {/* 대시보드 오버뷰 (차트 + 현재 모듈) */}
-      <Suspense fallback={<ModuleSkeleton />}>
-        <DashboardOverview 
-          studentId={studentId} 
-          displayName={session?.user?.name || ""} 
-        />
+      {/* 현재 모듈 숏컷 */}
+      <Suspense fallback={<CardSkeleton className="h-20" />}>
+        <CurrentModuleCard studentId={studentId} />
       </Suspense>
 
-      {/* 하단 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* 다음 레슨 */}
-        <div className="p-6 rounded-xl border border-border bg-card shadow-sm space-y-4">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Next Lesson
-          </h3>
-          <Suspense fallback={<LessonSkeleton />}>
-            <NextLessonSection studentId={studentId} />
-          </Suspense>
-        </div>
+      {/* 1행: 프로필 + 진행률 + 임박 레슨 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <Suspense fallback={<CardSkeleton className="h-52" />}>
+          <ProfileSection
+            studentId={studentId}
+            displayName={displayName}
+            email={email}
+          />
+        </Suspense>
 
-        {/* 최근 피드백 (Phase 3 이후 연동) */}
-        <div className="p-6 rounded-xl border border-border bg-card shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Recent Feedback
-            </h3>
-          </div>
-          <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-muted/10 text-muted-foreground">
-            <p className="text-sm italic">No active feedback requests.</p>
-            <p className="text-xs mt-1 text-muted-foreground/50">
-              Phase 3에서 연동 예정
-            </p>
+        <Suspense fallback={<CardSkeleton className="h-52" />}>
+          <ProgressSection studentId={studentId} displayName={displayName} />
+        </Suspense>
+
+        <Suspense fallback={<UpcomingLessonsWidgetSkeleton />}>
+          <UpcomingLessonsWidget studentId={studentId} />
+        </Suspense>
+      </div>
+
+      {/* 2행: 디깅 애널리틱스 + Q&A + 최근 피드백 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Recharts 바 차트, 목데이터 */}
+        <DiggingAnalyticsWidget />
+
+        {/* Q&A 알림, 목데이터 */}
+        <PendingQnaWidget />
+
+        {/* 최근 피드백 — Phase 3 이후 연동 */}
+        <div className="p-6 rounded-2xl border border-border bg-card shadow-sm flex flex-col gap-4">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Recent Feedback
+          </h3>
+          <div className="flex-1 flex flex-col items-center justify-center py-8 border border-dashed rounded-xl bg-muted/10 text-muted-foreground gap-2">
+            <p className="text-sm">No active feedback requests.</p>
+            <p className="text-xs opacity-50">Phase 3에서 연동 예정</p>
           </div>
         </div>
       </div>
