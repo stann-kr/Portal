@@ -3,6 +3,29 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v1.1.0] - 2026-03-25
+
+### Added
+
+- `src/components/calendar/PersonalCalendar.tsx` — FullCalendar 기반 개인 캘린더 (월/주/일/목록 뷰, 드래그&드롭)
+- `src/components/calendar/EventFormDialog.tsx` — 이벤트 생성 다이얼로그 (유형/제목/시작/종료/메모)
+- `src/components/ui/dialog.tsx` — Radix UI Dialog 래퍼
+- `src/lib/actions/calendarEvents.ts` — 캘린더 이벤트 CRUD 서버 액션
+- `drizzle/0004_personal_calendar_events.sql` — calendar_events 테이블 마이그레이션
+
+### Changed
+
+- `src/app/dashboard/calendar/page.tsx` — 기존 정적 캘린더 → FullCalendar 기반 동적 캘린더로 교체
+- `src/db/schema.ts` — calendarEvents 테이블 추가 (LESSON/PRACTICE/GIG/NOTE)
+- `src/app/globals.css` — FullCalendar 테마 오버라이드 CSS 추가
+
+### Dependencies
+
+- `@fullcalendar/react`, `@fullcalendar/core`, `@fullcalendar/daygrid`, `@fullcalendar/timegrid`, `@fullcalendar/interaction`, `@fullcalendar/list` 추가
+- `@radix-ui/react-dialog` 추가
+
+---
+
 ## [v1.0.0] - 2026-03-25
 
 ### Added

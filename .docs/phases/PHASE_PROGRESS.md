@@ -81,14 +81,31 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 
 ---
 
-## Phase 4 — 개인 캘린더 게시판 ⏳ 예정
+## Phase 4 — 개인 캘린더 게시판 ✅ 완료
 
-**목표**: FullCalendar 기반 개인 일정 관리 (LESSON/PRACTICE/GIG/NOTE)
+**시작일**: 2026-03-25
+**완료일**: 2026-03-25
 
-**주요 변경**:
-- `calendarEvents` 테이블 신규 추가 (Drizzle Migration)
-- FullCalendar 컴포넌트 + 드래그&드롭
-- 이벤트 타입별 색상 코딩
+### 완료 항목
+- [x] `@fullcalendar/react`, `@fullcalendar/core` 외 플러그인 패키지 설치
+- [x] `@radix-ui/react-dialog` 패키지 설치
+- [x] `src/db/schema.ts` — `calendarEvents` 테이블 추가 (LESSON/PRACTICE/GIG/NOTE)
+- [x] `drizzle/0004_personal_calendar_events.sql` — 마이그레이션 파일 생성 및 로컬 적용
+- [x] `src/lib/actions/calendarEvents.ts` — CRUD 서버 액션 (getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent)
+- [x] `src/components/ui/dialog.tsx` — Radix UI Dialog 래퍼
+- [x] `src/components/calendar/EventFormDialog.tsx` — 이벤트 생성 다이얼로그 (유형/제목/시작/종료/메모)
+- [x] `src/components/calendar/PersonalCalendar.tsx` — FullCalendar 컴포넌트 (월/주/일/목록 뷰, 드래그&드롭, 이벤트 상세 팝오버)
+- [x] `src/app/dashboard/calendar/page.tsx` — 기존 커스텀 캘린더 → FullCalendar 기반으로 교체
+- [x] `src/app/globals.css` — FullCalendar 테마 오버라이드 CSS 추가
+
+### 색상 코딩
+- LESSON: `#3B82F6` (파란색)
+- PRACTICE: `#10B981` (초록색)
+- GIG: `#EF4444` (빨간색)
+- NOTE: `#F59E0B` (주황색)
+
+### 참고 파일
+- `CHANGE_LOG.md` → v1.1.0 항목
 
 ---
 
@@ -123,6 +140,6 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 | Phase 1 — R2 인프라 | ✅ 완료 | 2026-03-25 |
 | Phase 2 — 대시보드 고도화 | ✅ 완료 | 2026-03-25 |
 | Phase 3 — 커뮤니티 고도화 | ✅ 완료 | 2026-03-25 |
-| Phase 4 — 개인 캘린더 | ⏳ 예정 | — |
+| Phase 4 — 개인 캘린더 | ✅ 완료 | 2026-03-25 |
 | Phase 5 — 디깅 게시판 | ⏳ 예정 | — |
 | Phase 6 — Q&A 게시판 | ⏳ 예정 | — |

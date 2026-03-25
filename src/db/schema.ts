@@ -131,3 +131,29 @@ export const comments = sqliteTable("comments", {
   ),
 });
 
+/**
+ * Phase 4: 개인 캘린더 이벤트.
+ * - LESSON: 수업 일정 (파란색)
+ * - PRACTICE: 연습 일정 (초록색)
+ * - GIG: 공연/행사 (빨간색)
+ * - NOTE: 메모/기타 (주황색)
+ */
+export type CalendarEventType = "LESSON" | "PRACTICE" | "GIG" | "NOTE";
+
+export const calendarEvents = sqliteTable("calendar_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  eventType: text("event_type")
+    .$type<CalendarEventType>()
+    .default("NOTE")
+    .notNull(),
+  title: text("title").notNull(),
+  startTime: integer("start_time", { mode: "timestamp" }).notNull(),
+  endTime: integer("end_time", { mode: "timestamp" }),
+  description: text("description"),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`,
+  ),
+});
