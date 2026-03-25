@@ -1,8 +1,9 @@
 /**
  * @file src/lib/actions/posts.ts
  * @description 커뮤니티 게시물 CRUD 서버 액션.
- * 작성: 모든 인증 사용자.
- * 수정/삭제: 본인 글만.
+ * Phase 3: boardType(ANNOUNCEMENT/GENERAL/FEEDBACK) 기반 조회/생성 추가.
+ * 작성: 모든 인증 사용자 (ANNOUNCEMENT는 Admin 전용).
+ * 수정/삭제: 본인 글 또는 Admin.
  */
 "use server";
 
@@ -11,6 +12,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { posts, profiles } from "@/db/schema";
+import type { BoardType } from "@/db/schema";
 import { and, eq, desc } from "drizzle-orm";
 
 const VALID_CATEGORIES = [
@@ -27,29 +29,47 @@ async function requireAuth() {
   return session;
 }
 
-// ───────────────────────────────────────────────
-// 조회
-// ───────────────────────────────────────────────
+// ─── 공통 select 필드 ──────────────────────────
+
+const POST_SELECT = {
+  id: posts.id,
+  authorId: posts.authorId,
+  category: posts.category,
+  boardType: posts.boardType,
+  isPinned: posts.isPinned,
+  mediaUrl: posts.mediaUrl,
+  title: posts.title,
+  contentHtml: posts.contentHtml,
+  createdAt: posts.createdAt,
+  authorName: profiles.displayName,
+  authorEmail: profiles.email,
+} as const;
+
+// ─── 조회 ────────────────────────────────────────
 
 /**
- * 카테고리별 게시물 목록 조회 (최신순, 작성자 정보 포함).
+ * boardType별 게시물 목록 조회 (최신순, isPinned 우선).
+ */
+export async function getPostsByBoardType(boardType: BoardType) {
+  const db = createDb();
+  return db
+    .select(POST_SELECT)
+    .from(posts)
+    .leftJoin(profiles, eq(posts.authorId, profiles.id))
+    .where(eq(posts.boardType, boardType))
+    .orderBy(desc(posts.isPinned), desc(posts.createdAt));
+}
+
+/**
+ * 카테고리별 GENERAL 게시물 목록 조회 (기존 호환성 유지).
  */
 export async function getPostsByCategory(category: Category) {
   const db = createDb();
   return db
-    .select({
-      id: posts.id,
-      authorId: posts.authorId,
-      category: posts.category,
-      title: posts.title,
-      contentHtml: posts.contentHtml,
-      createdAt: posts.createdAt,
-      authorName: profiles.displayName,
-      authorEmail: profiles.email,
-    })
+    .select(POST_SELECT)
     .from(posts)
     .leftJoin(profiles, eq(posts.authorId, profiles.id))
-    .where(eq(posts.category, category))
+    .where(and(eq(posts.category, category), eq(posts.boardType, "GENERAL")))
     .orderBy(desc(posts.createdAt));
 }
 
@@ -59,16 +79,7 @@ export async function getPostsByCategory(category: Category) {
 export async function getPostById(postId: string) {
   const db = createDb();
   const rows = await db
-    .select({
-      id: posts.id,
-      authorId: posts.authorId,
-      category: posts.category,
-      title: posts.title,
-      contentHtml: posts.contentHtml,
-      createdAt: posts.createdAt,
-      authorName: profiles.displayName,
-      authorEmail: profiles.email,
-    })
+    .select(POST_SELECT)
     .from(posts)
     .leftJoin(profiles, eq(posts.authorId, profiles.id))
     .where(eq(posts.id, postId))
@@ -76,16 +87,14 @@ export async function getPostById(postId: string) {
   return rows[0] ?? null;
 }
 
-// ───────────────────────────────────────────────
-// 생성
-// ───────────────────────────────────────────────
+// ─── 생성 ────────────────────────────────────────
 
 export type CreatePostState = { error?: string };
 
 /**
  * 게시물 작성.
- * @param _prev - useActionState 이전 상태
- * @param formData - { title, category, contentHtml }
+ * - ANNOUNCEMENT 타입은 Admin만 작성 가능
+ * - FEEDBACK 타입은 mediaUrl 포함 가능
  */
 export async function createPost(
   _prev: CreatePostState,
@@ -94,14 +103,21 @@ export async function createPost(
   const session = await requireAuth();
 
   const title = (formData.get("title") as string)?.trim();
-  const category = formData.get("category") as string;
+  const category = (formData.get("category") as string) || "general";
   const contentHtml = formData.get("contentHtml") as string;
+  const boardType = (formData.get("boardType") as BoardType) || "GENERAL";
+  const mediaUrl = (formData.get("mediaUrl") as string) || null;
+  const isPinnedRaw = formData.get("isPinned");
+  const isPinned = isPinnedRaw === "on" || isPinnedRaw === "true";
 
   if (!title) return { error: "제목을 입력해주세요." };
-  if (!VALID_CATEGORIES.includes(category as Category))
-    return { error: "유효하지 않은 카테고리입니다." };
   if (!contentHtml || contentHtml === "<p></p>")
     return { error: "내용을 입력해주세요." };
+
+  // ANNOUNCEMENT 권한 체크
+  if (boardType === "ANNOUNCEMENT" && session.user.role !== "admin") {
+    return { error: "공지 작성은 관리자만 가능합니다." };
+  }
 
   const db = createDb();
   const id = crypto.randomUUID();
@@ -109,7 +125,10 @@ export async function createPost(
   await db.insert(posts).values({
     id,
     authorId: session.user.id!,
-    category,
+    category: boardType === "GENERAL" ? category : boardType.toLowerCase(),
+    boardType,
+    isPinned: boardType === "ANNOUNCEMENT" ? isPinned : false,
+    mediaUrl: boardType === "FEEDBACK" ? mediaUrl : null,
     title,
     contentHtml,
   });
@@ -118,14 +137,12 @@ export async function createPost(
   redirect(`/community/${id}`);
 }
 
-// ───────────────────────────────────────────────
-// 삭제 (본인 글만)
-// ───────────────────────────────────────────────
+// ─── 삭제 ────────────────────────────────────────
 
 /**
  * 게시물 삭제 (본인 글 또는 Admin).
  */
-export async function deletePost(postId: string, category: Category) {
+export async function deletePost(postId: string) {
   const session = await requireAuth();
   const db = createDb();
 
@@ -136,5 +153,21 @@ export async function deletePost(postId: string, category: Category) {
 
   await db.delete(posts).where(condition);
   revalidatePath("/community");
-  redirect(`/community?category=${category}`);
+  redirect("/community");
+}
+
+/**
+ * 공지 고정 토글 (Admin 전용).
+ */
+export async function togglePinPost(postId: string, currentPinned: boolean) {
+  const session = await requireAuth();
+  if (session.user.role !== "admin") throw new Error("Unauthorized");
+
+  const db = createDb();
+  await db
+    .update(posts)
+    .set({ isPinned: !currentPinned })
+    .where(eq(posts.id, postId));
+
+  revalidatePath("/community");
 }

@@ -56,16 +56,28 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 
 ---
 
-## Phase 3 — 커뮤니티 게시판 고도화 ⏳ 예정
+## Phase 3 — 커뮤니티 게시판 고도화 ✅ 완료
 
-**목표**: board_type Enum(ANNOUNCEMENT/GENERAL/FEEDBACK) 분리, 미디어 업로드
+**시작일**: 2026-03-25
+**완료일**: 2026-03-25
 
-**선행 조건**: Phase 1 R2 인프라 완료 ✅
+### 완료 항목
+- [x] `src/db/schema.ts` — `posts` 테이블에 `boardType`, `isPinned`, `mediaUrl` 컬럼 추가
+- [x] `drizzle/0003_community_board_type.sql` — Drizzle 마이그레이션 파일 생성
+- [x] 로컬 D1 마이그레이션 적용 (`wrangler d1 migrations apply portal-db --local`)
+- [x] `src/lib/actions/posts.ts` — `getPostsByBoardType()`, `togglePinPost()` 추가, `deletePost()` 시그니처 정리
+- [x] `src/components/ui/accordion.tsx` — Radix UI Accordion 래퍼 (신규)
+- [x] `src/components/ui/tabs.tsx` — Radix UI Tabs 래퍼 (신규)
+- [x] `src/components/community/AnnouncementList.tsx` — Accordion 기반 공지 UI, 어드민 핀 토글
+- [x] `src/components/community/MixsetFeedbackCard.tsx` — 인라인 HTML5 오디오 플레이어
+- [x] `src/app/community/page.tsx` — RSC 래퍼 유지 (force-dynamic)
+- [x] `src/app/community/CommunityClient.tsx` — 3탭(ANNOUNCEMENT/GENERAL/FEEDBACK) 클라이언트 UI
+- [x] `src/app/community/new/page.tsx` — boardType 선택 + FEEDBACK 오디오 R2 업로드
+- [x] `src/app/community/[postId]/PostDetailClient.tsx` — `deletePost` 호출 시그니처 수정
+- [x] `src/app/globals.css` — accordion 애니메이션 keyframe 추가
 
-**주요 변경**:
-- `posts` 테이블: `boardType`, `isPinned`, `mediaUrl` 컬럼 추가 (Drizzle Migration)
-- `AnnouncementList.tsx` (아코디언 UI)
-- `MixsetFeedbackCard.tsx` (인라인 오디오 플레이어 + R2 업로드)
+### 참고 파일
+- `CHANGE_LOG.md` → v1.0.0 항목
 
 ---
 
@@ -110,7 +122,7 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 |-------|------|--------|
 | Phase 1 — R2 인프라 | ✅ 완료 | 2026-03-25 |
 | Phase 2 — 대시보드 고도화 | ✅ 완료 | 2026-03-25 |
-| Phase 3 — 커뮤니티 고도화 | ⏳ 예정 | — |
+| Phase 3 — 커뮤니티 고도화 | ✅ 완료 | 2026-03-25 |
 | Phase 4 — 개인 캘린더 | ⏳ 예정 | — |
 | Phase 5 — 디깅 게시판 | ⏳ 예정 | — |
 | Phase 6 — Q&A 게시판 | ⏳ 예정 | — |

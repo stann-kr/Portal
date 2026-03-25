@@ -11,8 +11,11 @@
  */
 export const dynamic = "force-dynamic";
 
+import { auth } from "@/auth";
 import CommunityClient from "./CommunityClient";
 
-export default function CommunityPage() {
-  return <CommunityClient />;
+export default async function CommunityPage() {
+  const session = await auth();
+  const isAdmin = session?.user?.role === "admin";
+  return <CommunityClient isAdmin={isAdmin} />;
 }

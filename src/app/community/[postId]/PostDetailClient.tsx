@@ -51,14 +51,7 @@ export function PostDetailClient({
   const handleDeletePost = () => {
     if (!post || !confirm("이 게시물을 삭제하시겠습니까?")) return;
     startTransition(async () => {
-      await deletePost(
-        post.id,
-        post.category as
-          | "gear-and-setup"
-          | "track-id"
-          | "terminal-info"
-          | "general",
-      );
+      await deletePost(post.id);
     });
   };
 

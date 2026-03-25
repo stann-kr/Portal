@@ -88,14 +88,30 @@ export const privateNotes = sqliteTable("private_notes", {
   ),
 });
 
+/**
+ * Phase 3: boardType으로 게시판 유형 분리.
+ * - ANNOUNCEMENT: 공지 (Admin 전용 작성, 아코디언 UI)
+ * - GENERAL: 자유 게시판 (카테고리별 스레드)
+ * - FEEDBACK: 믹스셋 공유 (R2 오디오 업로드 + 인라인 플레이어)
+ * category 컬럼은 GENERAL 타입 하위 분류용으로 유지.
+ */
+export type BoardType = "ANNOUNCEMENT" | "GENERAL" | "FEEDBACK";
+
 export const posts = sqliteTable("posts", {
   id: text("id").primaryKey(),
   authorId: text("author_id")
     .references(() => profiles.id, { onDelete: "cascade" })
     .notNull(),
-  category: text("category").notNull(), /* TODO: nullable로 만들고 categoryId 포워딩 후 제거 고려. 일단 유지하며 기존 코드 폭파 방지 */
+  category: text("category").notNull(),
   title: text("title").notNull(),
   contentHtml: text("content_html").notNull(),
+  // Phase 3 추가 컬럼
+  boardType: text("board_type")
+    .$type<BoardType>()
+    .default("GENERAL")
+    .notNull(),
+  isPinned: integer("is_pinned", { mode: "boolean" }).default(false).notNull(),
+  mediaUrl: text("media_url"), // FEEDBACK 타입 R2 오디오 URL
   createdAt: integer("created_at", { mode: "timestamp" }).default(
     sql`(strftime('%s', 'now'))`,
   ),

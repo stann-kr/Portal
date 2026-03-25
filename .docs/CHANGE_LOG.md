@@ -3,6 +3,36 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v1.0.0] - 2026-03-25
+
+### Added
+
+- `src/components/community/AnnouncementList.tsx` — Radix UI Accordion 기반 공지 아코디언 UI, 어드민 핀 고정/해제
+- `src/components/community/MixsetFeedbackCard.tsx` — 믹스셋 리치 미디어 카드, HTML5 인라인 오디오 플레이어
+- `src/components/ui/accordion.tsx` — Shadcn 스타일 Accordion 컴포넌트
+- `src/components/ui/tabs.tsx` — Shadcn 스타일 Tabs 컴포넌트
+- `drizzle/0003_community_board_type.sql` — posts 테이블 board_type/is_pinned/media_url 마이그레이션
+
+### Changed
+
+- `src/db/schema.ts` — posts 테이블에 boardType(ANNOUNCEMENT/GENERAL/FEEDBACK), isPinned, mediaUrl 컬럼 추가
+- `src/lib/actions/posts.ts` — getPostsByBoardType(), togglePinPost() 추가; deletePost() category 파라미터 제거
+- `src/app/community/CommunityClient.tsx` — 3탭 UI(공지/자유/믹스셋) 전면 재작성
+- `src/app/community/new/page.tsx` — boardType 선택 탭 + FEEDBACK R2 오디오 업로드 UI 추가
+- `src/app/community/[postId]/PostDetailClient.tsx` — deletePost 호출 시그니처 수정
+- `src/app/globals.css` — accordion-down/up 애니메이션 keyframe 추가
+
+### Fixed
+
+- `PostDetailClient.tsx`: deletePost()에 category 파라미터 전달하던 코드 제거 (시그니처 불일치 해소)
+
+### Dependencies
+
+- `@radix-ui/react-accordion` 추가
+- `@radix-ui/react-tabs` 추가
+
+---
+
 ## [v0.9.0] - 2026-03-25
 
 ### Added
