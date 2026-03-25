@@ -143,14 +143,30 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 
 ---
 
-## Phase 6 — 1:1 Q&A 게시판 ⏳ 예정
+## Phase 6 — 1:1 Q&A 게시판 ✅ 완료
 
-**목표**: 스레드 기반 Q&A (TiptapEditor + R2 첨부)
+**시작일**: 2026-03-25
+**완료일**: 2026-03-25
 
-**주요 변경**:
-- `qnaThreads`, `qnaReplies` 테이블 신규 추가 (Drizzle Migration)
-- 상태 관리: OPEN / ANSWERED / CLOSED
-- Admin: 전체 학생 Q&A 목록 + OPEN 필터링
+### 완료 항목
+- [x] `src/db/schema.ts` — `qnaThreads`, `qnaReplies` 테이블 추가 (QnaStatus: OPEN/ANSWERED/CLOSED)
+- [x] `drizzle/0006_qna_board.sql` — 마이그레이션 생성 및 로컬 적용
+- [x] `src/lib/actions/qna.ts` — CRUD 서버 액션 (getQnaThreads, getQnaThread, createQnaThread, createQnaReply, updateThreadStatus, getOpenThreadCount)
+- [x] `src/components/qna/ThreadList.tsx` — 스레드 목록 (상태 뱃지, 어드민 학생명 표시)
+- [x] `src/components/qna/ReplyCard.tsx` — 답변 카드 (어드민/학생 역할별 스타일 구분)
+- [x] `src/components/qna/ThreadDetailClient.tsx` — 답변 작성 폼 + 어드민 상태 변경 버튼
+- [x] `src/app/dashboard/qna/page.tsx` — Q&A 목록 페이지 (미답변 카운트 뱃지)
+- [x] `src/app/dashboard/qna/new/page.tsx` — 새 질문 작성 (TiptapEditor)
+- [x] `src/app/dashboard/qna/[threadId]/page.tsx` — 스레드 상세 페이지
+- [x] 대시보드 사이드바 Q&A 메뉴 추가 (admin/student, 미답변 뱃지)
+- [x] 커뮤니티 사이드바 '대시보드로' 뒤로가기 링크 추가 (홈 이동 불가 버그 수정)
+
+### 자동화 로직
+- 어드민 답변 작성 → 스레드 상태 자동 ANSWERED 전환
+- 학생 추가 질문 작성 → 스레드 상태 자동 OPEN 재오픈
+
+### 참고 파일
+- `CHANGE_LOG.md` → v1.3.0 항목
 
 ---
 
@@ -163,4 +179,4 @@ LMS 고도화 각 Phase의 구현 상태, 완료 항목, 잔여 작업을 추적
 | Phase 3 — 커뮤니티 고도화 | ✅ 완료 | 2026-03-25 |
 | Phase 4 — 개인 캘린더 | ✅ 완료 | 2026-03-25 |
 | Phase 5 — 디깅 게시판 | ✅ 완료 | 2026-03-25 |
-| Phase 6 — Q&A 게시판 | ⏳ 예정 | — |
+| Phase 6 — Q&A 게시판 | ✅ 완료 | 2026-03-25 |

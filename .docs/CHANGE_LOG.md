@@ -3,6 +3,31 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v1.3.0] - 2026-03-25
+
+### Added
+
+- `src/components/qna/ThreadList.tsx` — Q&A 스레드 목록 (OPEN/ANSWERED/CLOSED 상태 뱃지)
+- `src/components/qna/ReplyCard.tsx` — 답변 카드 (어드민 우측/학생 좌측 스타일 구분)
+- `src/components/qna/ThreadDetailClient.tsx` — 답변 작성 폼 + 어드민 상태 변경 버튼
+- `src/lib/actions/qna.ts` — Q&A CRUD 서버 액션 (스레드/답변 생성, 상태 변경, 미답변 카운트)
+- `drizzle/0006_qna_board.sql` — qna_threads / qna_replies 마이그레이션
+- `src/app/dashboard/qna/page.tsx` — Q&A 목록 페이지
+- `src/app/dashboard/qna/new/page.tsx` — 새 질문 작성 페이지
+- `src/app/dashboard/qna/[threadId]/page.tsx` — 스레드 상세 페이지
+
+### Changed
+
+- `src/db/schema.ts` — qnaThreads, qnaReplies 테이블 추가
+- `src/app/dashboard/layout.tsx` — Q&A 메뉴 + 미답변 뱃지 추가 (admin/student 모두)
+- `src/app/community/CommunityClient.tsx` — 사이드바에 '대시보드로' 뒤로가기 링크 추가
+
+### Fixed
+
+- 커뮤니티 페이지 진입 시 홈/대시보드로 이동 불가 문제 수정
+
+---
+
 ## [v1.2.0] - 2026-03-25
 
 ### Added
