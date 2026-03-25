@@ -19,7 +19,7 @@ import { getCategories } from "@/lib/actions/categories";
 
 function NewPostForm() {
   const searchParams = useSearchParams();
-  const defaultCategory = searchParams.get("category") ?? "general";
+  const defaultCategory = searchParams?.get("category") ?? "general";
 
   const [state, action, isPending] = useActionState<CreatePostState, FormData>(
     createPost,

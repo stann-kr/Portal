@@ -3,6 +3,31 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v0.8.0] - 2026-03-25
+
+### Added
+
+- `src/lib/r2.ts` — Cloudflare R2 S3 클라이언트 초기화, `generatePresignedUploadUrl()`, `deleteR2Object()` 구현
+- `src/lib/actions/upload.ts` — Presigned URL 발급 서버 액션 (인증 검증 포함)
+- `src/components/upload/FileUploader.tsx` — 범용 파일 업로드 컴포넌트 (진행률 표시, R2 직접 PUT)
+- `src/modules/` — Feature-Sliced 디렉토리 구조 (auth/, digging/, calendar/, qna/) 초기 생성
+- `src/app/community/CommunityClient.tsx` — 커뮤니티 페이지 클라이언트 컴포넌트 분리
+
+### Changed
+
+- `src/app/community/page.tsx` → RSC 래퍼 패턴으로 전환 (`force-dynamic`, 서버 액션 직접 임포트 제거)
+- `src/app/layout.tsx` — `export const dynamic = "force-dynamic"` 추가 (인증 앱 전체 동적 렌더링)
+- `src/pages/_document.tsx`, `_app.tsx`, `_error.tsx` 신규 생성 (App Router + Pages Router 공존 필수 파일)
+- `next.config.ts` — `@cloudflare/next-on-pages/next-dev` 제거, ESLint 빌드 비활성화
+- `.env.example` — R2 환경 변수 (`R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`) 추가
+
+### Fixed
+
+- `npm run build` 정적 생성 단계 `TypeError: Cannot read properties of undefined (reading 'env')` 해결 (RSC 래퍼 패턴 + force-dynamic 전환)
+- `VideoPlayer.tsx` — `react-player` SSR 충돌 해결 (`dynamic()` ssr:false 로 전환)
+
+---
+
 ## [v0.6.0] - 2026-03-24
 
 ### Changed

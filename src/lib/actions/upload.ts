@@ -1,41 +1,55 @@
 "use server";
 
 import { auth } from "@/auth";
+import { generatePresignedUploadUrl, type PresignedUrlOptions } from "@/lib/r2";
 
-export async function uploadToR2(formData: FormData) {
+export interface RequestPresignedUrlInput {
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+  options?: PresignedUrlOptions;
+}
+
+export interface RequestPresignedUrlResult {
+  success: boolean;
+  uploadUrl?: string;
+  key?: string;
+  publicUrl?: string;
+  error?: string;
+}
+
+/**
+ * 클라이언트에서 파일 메타데이터를 받아 R2 Presigned Upload URL을 발급
+ * 실제 파일 전송은 클라이언트가 반환된 uploadUrl로 직접 R2에 PUT 요청
+ *
+ * @param input 파일 메타데이터 (이름, MIME, 크기) + 옵션
+ */
+export async function requestPresignedUploadUrl(
+  input: RequestPresignedUrlInput
+): Promise<RequestPresignedUrlResult> {
   const session = await auth();
 
   if (!session?.user) {
-    throw new Error("Unauthorized");
+    return { success: false, error: "인증이 필요합니다." };
   }
-
-  const file = formData.get("file") as File;
-  if (!file) {
-    throw new Error("No file provided");
-  }
-
-  // Cloudflare R2 Binding Access (Cloudflare Pages/Workers Adapter 환경 가정)
-  // 로컬 개발 시에는 MinIO와 같은 S3 호환 스토리지를 쓰거나 wrangler 프록시 사용.
-  const env = process.env as any;
-  const bucket = env.BUCKET as any;
 
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const key = `uploads/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+    const result = await generatePresignedUploadUrl(
+      input.fileName,
+      input.mimeType,
+      input.fileSize,
+      input.options
+    );
 
-    if (bucket) {
-      // 실제 R2 버킷에 저장
-      await bucket.put(key, arrayBuffer, {
-        httpMetadata: { contentType: file.type },
-      });
-      return { success: true, url: `${env.NEXT_PUBLIC_R2_DEV_URL}/${key}` };
-    } else {
-      // 버킷 바인딩이 없을 경우 (로컬 임시 모의 로직)
-      console.warn("R2 Bucket binding not found. Mocking successful upload.");
-      return { success: true, url: `https://mock.storage/${key}` };
-    }
-  } catch (error: any) {
-    console.error("R2 Upload Error:", error);
-    return { success: false, error: error.message };
+    return {
+      success: true,
+      uploadUrl: result.uploadUrl,
+      key: result.key,
+      publicUrl: result.publicUrl,
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "업로드 URL 생성 실패";
+    console.error("[upload] Presigned URL 생성 오류:", error);
+    return { success: false, error: message };
   }
 }

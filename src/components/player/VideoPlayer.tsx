@@ -7,9 +7,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import ReactPlayer from "react-player";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Play, Pause } from "lucide-react";
+
+// SSR에서 react-player를 제외해 next/document 관련 충돌 방지
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
 
 interface VideoPlayerProps {
   url: string;
@@ -20,14 +24,8 @@ interface VideoPlayerProps {
 export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
   const [playing, setPlaying] = useState(false);
   const [playedSeconds, setPlayedSeconds] = useState(0);
-  const [isClient, setIsClient] = useState(false);
 
   const playerRef = useRef<any>(null);
-  const Player = ReactPlayer as any;
-
-  useEffect(() => {
-    if (typeof window !== "undefined") setIsClient(true);
-  }, []);
 
   // ─── 외부 seekTo 요청 처리 ──────────────────────
   useEffect(() => {
@@ -47,16 +45,11 @@ export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
-  if (!isClient)
-    return (
-      <div className="aspect-video rounded-xl bg-muted border border-border animate-pulse" />
-    );
-
   return (
     <div className="space-y-3">
       {/* 플레이어 영역 */}
       <div className="relative rounded-xl overflow-hidden bg-black aspect-video border border-border group shadow-sm">
-        <Player
+        <ReactPlayer
           ref={playerRef}
           url={url}
           playing={playing}

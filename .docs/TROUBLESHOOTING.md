@@ -2,6 +2,21 @@
 
 프로젝트 진행 중 발생하는 주요 버그, 아키텍처 결함, 및 Docker(M1/M2) 관련 환경 오류에 대한 원인 분석 및 해결 과정을 기록함.
 
+## [v0.8.0] - 2026-03-25
+
+### 1. [빌드] Next.js 15 정적 생성 시 RSC 페이로드 오류 (`undefined.env`)
+
+- **문제 현상**: `npm run build` 중 정적 페이지 생성 단계에서 `TypeError: Cannot read properties of undefined (reading 'env')` 발생. `app-page.runtime.dev.js`의 `ResponseInstance._fromJSON` → `initializeModelChunk` 경로.
+- **원인 분석**: React 19 RSC 런타임은 모듈 청크 맵에서 청크를 조회할 때 `undefined`(미등록 청크)에 대해 `null !== undefined` 체크를 통과한 뒤 `undefined.env` 접근 시 TypeError 발생. 두 가지 복합 원인 존재:
+  1. `"use client"` 페이지 파일에서 `"use server"` 액션을 직접 임포트 → Next.js가 서버 액션 청크 참조를 RSC 페이로드에 포함시키는데 청크 맵에 해당 항목 미등록
+  2. `docker-compose.yml`에 `NODE_ENV=development`가 설정되어 빌드 시 dev 런타임(`app-page.runtime.dev.js`) 사용 → 엄격한 `env` 속성 검증 활성화
+- **해결 방법**:
+  - `community/page.tsx` (`"use client"` + 서버 액션 직접 임포트 구조) → RSC 래퍼 패턴으로 전환: `page.tsx` (RSC, `force-dynamic`) + `CommunityClient.tsx` (`"use client"`) 분리
+  - `app/layout.tsx`에 `export const dynamic = "force-dynamic"` 추가 → 인증 기반 앱 특성상 정적 생성 불필요, 전체 동적 렌더링 전환으로 `/_not-found` 포함 모든 정적 생성 오류 해결
+- **교훈**: Next.js App Router에서 `"use client"` 페이지 파일이 `"use server"` 모듈을 직접 임포트하면 안 됨. RSC 래퍼 → 클라이언트 컴포넌트 분리 패턴 필수 적용.
+
+---
+
 ## [v0.6.2] - 2026-03-24
 
 ### Fixed

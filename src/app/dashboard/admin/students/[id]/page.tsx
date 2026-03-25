@@ -137,7 +137,7 @@ function AddLessonForm({
 
 export default function StudentDetailPage() {
   const params = useParams<{ id: string }>();
-  const studentId = params.id;
+  const studentId = params?.id ?? "";
 
   const [student, setStudent] = useState<Profile>(null);
   const [modules, setModules] = useState<Module[]>([]);
