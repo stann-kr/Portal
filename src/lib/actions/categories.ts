@@ -5,17 +5,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { categories } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (session?.user?.role !== "admin") {
-    throw new Error("Unauthorized: Admin only.");
-  }
-}
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function getCategories() {
   const db = createDb();
@@ -47,8 +40,8 @@ export async function createCategory(_prev: CategoryState, formData: FormData): 
     revalidatePath("/dashboard/admin/categories");
     revalidatePath("/community");
     return { success: true };
-  } catch (err: any) {
-    if (err.message?.includes("UNIQUE constraint failed")) {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("UNIQUE constraint failed")) {
       return { error: "이미 존재하는 Slug입니다." };
     }
     return { error: "카테고리 생성 중 오류가 발생했습니다." };

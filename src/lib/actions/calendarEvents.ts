@@ -6,17 +6,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { calendarEvents } from "@/db/schema";
 import type { CalendarEventType } from "@/db/schema";
 import { and, eq, gte, lte } from "drizzle-orm";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return session;
-}
+import { requireAuth } from "@/lib/auth-guard";
 
 // ─── 조회 ────────────────────────────────────────
 

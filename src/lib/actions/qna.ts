@@ -8,17 +8,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { qnaThreads, qnaReplies, profiles } from "@/db/schema";
 import type { QnaStatus } from "@/db/schema";
 import { and, eq, desc, count } from "drizzle-orm";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return session;
-}
+import { requireAuth } from "@/lib/auth-guard";
 
 // ─── 스레드 조회 ──────────────────────────────────
 

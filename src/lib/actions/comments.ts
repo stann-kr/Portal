@@ -7,16 +7,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { comments, profiles } from "@/db/schema";
 import { and, eq, asc } from "drizzle-orm";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return session;
-}
+import { requireAuth } from "@/lib/auth-guard";
 
 // ───────────────────────────────────────────────
 // 조회

@@ -3,6 +3,36 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v1.4.0] - 2026-03-26
+
+### Added
+
+- `src/lib/auth-guard.ts` — 공통 인증/인가 가드 유틸 (`requireAuth`, `requireAdmin`) 추출
+- `isomorphic-dompurify` 의존성 추가 — 서버사이드 HTML 새니타이징
+
+### Changed
+
+- `src/lib/actions/` 전체 12개 파일 — 중복 `requireAuth/requireAdmin` 제거, `auth-guard.ts` 임포트로 대체
+- `src/lib/actions/privateNotes.ts` — 노트 저장 시 서버사이드 XSS 방어 적용 (이중 새니타이징)
+- `src/app/community/[postId]/PostDetailClient.tsx` — `any` 타입 → `ReturnType` 기반 명시적 타입 정의
+- `src/app/api/calendar/[studentId]/route.ts` — `any` 타입 → `Awaited<ReturnType<...>>` 패턴 적용
+- `src/components/player/VideoPlayer.tsx` — `any` 타입 제거, `ReactPlayerInstance` 인터페이스 정의
+- `src/lib/actions/students.ts` — `any` 타입 제거, Drizzle 추론 타입 활용
+- `src/db/client.ts` — `catch (e: any)` → `catch (e: unknown)`, 프로덕션 민감 정보 로깅 제거
+- `src/auth.ts` — 인증 디버그 로그(이메일 노출 포함) 제거
+- `src/lib/actions/upload.ts` — 에러 핸들러 내 `console.error` 제거
+- `src/components/dashboard/ProgressCharts.tsx` — 스파크라인 데이터 `useMemo` 최적화 적용
+- `src/components/digging/StarRating.tsx` — `role="radiogroup"`, `aria-label`, `aria-pressed` 접근성 속성 추가
+- `src/components/player/VideoPlayer.tsx` — 플레이/일시정지 버튼 `aria-label` 추가
+- `src/components/qna/ThreadDetailClient.tsx` — 상태 변경 버튼 `aria-current` 추가
+- `src/components/community/TiptapEditor.tsx` — 툴바 `role="toolbar"`, 버튼 `aria-label`/`aria-pressed` 추가
+
+### Fixed
+
+- `src/lib/actions/categories.ts` — `requireAdmin()` 반환값 누락 버그 수정 (`return session` 추가)
+
+---
+
 ## [v1.3.0] - 2026-03-25
 
 ### Added

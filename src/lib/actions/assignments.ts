@@ -7,22 +7,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { assignments } from "@/db/schema";
 import { and, eq, desc, count } from "drizzle-orm";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return session;
-}
-
-async function requireAdmin() {
-  const session = await requireAuth();
-  if (session.user.role !== "admin") throw new Error("Admin only");
-  return session;
-}
+import { requireAuth, requireAdmin } from "@/lib/auth-guard";
 
 /** 지원하는 미디어 플랫폼 URL 패턴 */
 const MEDIA_URL_PATTERNS = [

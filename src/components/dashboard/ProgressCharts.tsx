@@ -5,6 +5,7 @@
  */
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts";
 import { CheckCircle2, Circle } from "lucide-react";
@@ -52,7 +53,10 @@ export function ProgressCharts({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  const sparkData = buildSparklineData(completedCount);
+  const sparkData = useMemo(
+    () => buildSparklineData(completedCount),
+    [completedCount],
+  );
 
   return (
     <div className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-6">

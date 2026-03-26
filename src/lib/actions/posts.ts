@@ -9,11 +9,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { posts, profiles } from "@/db/schema";
 import type { BoardType } from "@/db/schema";
 import { and, eq, desc } from "drizzle-orm";
+import { requireAuth } from "@/lib/auth-guard";
 
 const VALID_CATEGORIES = [
   "gear-and-setup",
@@ -22,16 +22,6 @@ const VALID_CATEGORIES = [
   "general",
 ] as const;
 type Category = (typeof VALID_CATEGORIES)[number];
-
-async function requireAuth() {
-  const session = await auth();
-  console.log("[posts] Checking auth session. User ID exists:", !!session?.user?.id);
-  if (!session?.user?.id) {
-    console.warn("[posts] Authorization failed: Session or User ID missing");
-    throw new Error("Unauthorized");
-  }
-  return session;
-}
 
 // ─── 공통 select 필드 ──────────────────────────
 

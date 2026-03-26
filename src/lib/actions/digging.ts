@@ -5,11 +5,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { diggingColumns, diggingTracks } from "@/db/schema";
 import type { DiggingColumnType } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import { requireAuth } from "@/lib/auth-guard";
 
 // ─── 기본 컬럼 정의 ───────────────────────────────
 const DEFAULT_COLUMNS: {
@@ -25,12 +25,6 @@ const DEFAULT_COLUMNS: {
   { name: "별점", columnType: "rating", sortOrder: 4 },
   { name: "링크", columnType: "link", sortOrder: 5 },
 ];
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return session;
-}
 
 // ─── 컬럼 ─────────────────────────────────────────
 

@@ -27,9 +27,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        console.log("[auth] Authorize attempt for:", credentials.email);
-        console.log("[auth] AUTH_SECRET present:", !!process.env.AUTH_SECRET);
-
         try {
           // createDb()가 프로덕션/로컬 환경을 자동 판별하여 올바른 드라이버 반환
           const db = createDb();
@@ -42,7 +39,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const user = userList[0];
           if (!user || !user.passwordHash) {
-            console.error("[auth] User not found:", credentials.email);
             return null;
           }
 
@@ -52,7 +48,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           );
 
           if (!isValid) {
-            console.error("[auth] Password mismatch for:", credentials.email);
             return null;
           }
 
@@ -62,9 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: user.displayName,
             role: (user.role as "admin" | "student") ?? "student",
           };
-        } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : "Unknown error";
-          console.error("[auth] Runtime error in authorize:", message);
+        } catch {
           // null 반환 시 NextAuth가 CredentialsSignin 에러로 사용자에게 전달
           return null;
         }

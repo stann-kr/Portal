@@ -70,12 +70,14 @@ export default function TiptapEditor({
   return (
     <div className="border border-border rounded-xl bg-accent/20 overflow-hidden shadow-inner flex flex-col focus-within:ring-1 focus-within:ring-primary transition-all">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border bg-black/40">
+      <div role="toolbar" aria-label="편집 도구" className="flex flex-wrap items-center gap-1 p-2 border-b border-border bg-black/40">
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleBold().run()}
+          aria-label="굵은 글씨 (Ctrl+B)"
+          aria-pressed={editor.isActive("bold")}
           className={
             editor.isActive("bold")
               ? "bg-primary/20 text-primary"
@@ -89,6 +91,8 @@ export default function TiptapEditor({
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleItalic().run()}
+          aria-label="기울임 (Ctrl+I)"
+          aria-pressed={editor.isActive("italic")}
           className={
             editor.isActive("italic")
               ? "bg-primary/20 text-primary"
@@ -103,6 +107,7 @@ export default function TiptapEditor({
           variant="ghost"
           size="sm"
           onClick={addImage}
+          aria-label="이미지 삽입"
           className="text-muted-foreground hover:text-secondary"
         >
           <ImageIcon className="w-4 h-4" />
@@ -112,6 +117,7 @@ export default function TiptapEditor({
           variant="ghost"
           size="sm"
           onClick={addYoutube}
+          aria-label="유튜브 동영상 삽입"
           className="text-muted-foreground hover:text-red-400"
         >
           <Video className="w-4 h-4" />

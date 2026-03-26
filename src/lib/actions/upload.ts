@@ -49,7 +49,6 @@ export async function requestPresignedUploadUrl(
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "업로드 URL 생성 실패";
-    console.error("[upload] Presigned URL 생성 오류:", error);
     return { success: false, error: message };
   }
 }

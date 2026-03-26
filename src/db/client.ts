@@ -42,18 +42,13 @@ export function createDb(): DrizzleDb {
     try {
       const { getCloudflareContext } = require("@opennextjs/cloudflare");
       const ctx = getCloudflareContext();
-      
-      console.log("[db] Cloudflare Context keys:", Object.keys(ctx || {}));
-      
       const d1 = ctx?.env?.DB as D1Database | undefined;
 
       if (d1) {
         return createD1Db(d1);
-      } else {
-        console.error("[db] D1 binding 'DB' not found in ctx.env. Available env keys:", Object.keys(ctx?.env || {}));
       }
-    } catch (e: any) {
-      console.error("[db] Failed to get Cloudflare context:", e.message);
+    } catch {
+      // Cloudflare 컨텍스트 획득 실패 시 로컬 환경으로 폴백
     }
   }
 
@@ -61,9 +56,6 @@ export function createDb(): DrizzleDb {
   if (process.env.NODE_ENV === "development") {
     return createLocalDb();
   }
-
-  // 빌드 타임 혹은 환경 변수 누락 시
-  console.warn("[db] Falling through to error throw - binding or context missing");
 
   throw new Error(
     "[db] D1 Database binding 'DB' not found.\n" +

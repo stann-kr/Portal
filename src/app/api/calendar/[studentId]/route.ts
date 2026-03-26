@@ -8,6 +8,8 @@ import { createEvent, type EventAttributes } from "ics";
 import { getLessonsForCalendar } from "@/lib/actions/lessons";
 import { getStudentById } from "@/lib/actions/students";
 
+type Lesson = Awaited<ReturnType<typeof getLessonsForCalendar>>[number];
+
 
 
 
@@ -28,8 +30,8 @@ export async function GET(
 
   // ICS 이벤트 생성
   const events: EventAttributes[] = lessonList
-    .filter((l: any) => l.scheduledAt !== null)
-    .map((l: any) => {
+    .filter((l: Lesson) => l.scheduledAt !== null)
+    .map((l: Lesson) => {
       const d = new Date(l.scheduledAt!);
       return {
         start: [

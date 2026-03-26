@@ -7,16 +7,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { feedbacks } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (session?.user?.role !== "admin") throw new Error("Admin only");
-  return session;
-}
+import { requireAdmin } from "@/lib/auth-guard";
 
 // ───────────────────────────────────────────────
 // 조회

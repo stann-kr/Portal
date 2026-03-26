@@ -7,18 +7,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import DOMPurify from "isomorphic-dompurify";
 import { createDb } from "@/db/client";
 import { privateNotes, profiles } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
-  return session;
-}
+import { requireAuth } from "@/lib/auth-guard";
 
 /**
  * 특정 학생의 프라이빗 노트 목록 조회.
@@ -70,9 +63,12 @@ export async function createPrivateNote(targetStudentId: string, _prev: CreateNo
   }
 
   const title = formData.get("title") as string;
-  const contentHtml = formData.get("contentHtml") as string;
+  const rawHtml = formData.get("contentHtml") as string;
 
-  if (!title || !contentHtml) return { error: "제목과 내용은 필수입니다." };
+  if (!title || !rawHtml) return { error: "제목과 내용은 필수입니다." };
+
+  // 서버사이드 XSS 방어: 클라이언트 DOMPurify와 이중 새니타이징
+  const contentHtml = DOMPurify.sanitize(rawHtml);
 
   const db = createDb();
   const id = crypto.randomUUID();

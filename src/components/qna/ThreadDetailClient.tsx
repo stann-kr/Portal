@@ -70,13 +70,14 @@ export function ThreadDetailClient({
 
       {/* 어드민 상태 변경 */}
       {isAdmin && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" aria-label="스레드 상태 변경">
           <span className="text-xs text-muted-foreground">상태 변경:</span>
           {(["OPEN", "ANSWERED", "CLOSED"] as QnaStatus[]).map((s) => (
             <button
               key={s}
               onClick={() => handleStatusChange(s)}
               disabled={status === s || isPending}
+              aria-current={status === s ? "true" : undefined}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
                 status === s
                   ? s === "OPEN"

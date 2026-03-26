@@ -8,12 +8,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
+import type ReactPlayerType from "react-player";
 import { Button } from "@/components/ui/button";
 import { Play, Pause } from "lucide-react";
 
+/** seekTo 메서드를 가진 ReactPlayer 인스턴스 타입 */
+type ReactPlayerInstance = {
+  seekTo: (amount: number, type: "seconds" | "fraction") => void;
+};
+
 // SSR에서 react-player를 제외해 next/document 관련 충돌 방지
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
+const ReactPlayer = dynamic(
+  () => import("react-player"),
+  { ssr: false },
+) as unknown as typeof ReactPlayerType;
 
 interface VideoPlayerProps {
   url: string;
@@ -25,7 +33,7 @@ export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
   const [playing, setPlaying] = useState(false);
   const [playedSeconds, setPlayedSeconds] = useState(0);
 
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<ReactPlayerInstance | null>(null);
 
   // ─── 외부 seekTo 요청 처리 ──────────────────────
   useEffect(() => {
@@ -53,7 +61,7 @@ export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
           ref={playerRef}
           url={url}
           playing={playing}
-          onProgress={handleProgress as any}
+          onProgress={handleProgress}
           width="100%"
           height="100%"
           controls={true}
@@ -68,6 +76,7 @@ export function VideoPlayer({ url, seekToSeconds }: VideoPlayerProps) {
               size="sm"
               className="text-white hover:bg-white/20 rounded-full w-9 h-9 p-0"
               onClick={() => setPlaying(!playing)}
+              aria-label={playing ? "일시정지" : "재생"}
             >
               {playing ? (
                 <Pause className="w-4 h-4" />

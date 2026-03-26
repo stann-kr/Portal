@@ -9,12 +9,13 @@ import { deletePost } from "@/lib/actions/posts";
 import {
   createComment,
   deleteComment,
+  getCommentsByPost,
   type CreateCommentState,
 } from "@/lib/actions/comments";
+import { getPostById } from "@/lib/actions/posts";
 
-// type 임시 정의 (상위에서 넘겨받음)
-type Post = any;
-type Comment = any;
+type Post = NonNullable<Awaited<ReturnType<typeof getPostById>>>;
+type Comment = Awaited<ReturnType<typeof getCommentsByPost>>[number];
 
 interface PostDetailClientProps {
   postId: string;
@@ -126,7 +127,7 @@ export function PostDetailClient({
           <p className="text-sm text-muted-foreground">첫 댓글을 남겨보세요.</p>
         ) : (
           <ul className="space-y-3">
-            {commentList.map((c: any) => {
+            {commentList.map((c) => {
               const cAuthor =
                 c.authorName ?? c.authorEmail?.split("@")[0] ?? "Unknown";
               const cDate = c.createdAt

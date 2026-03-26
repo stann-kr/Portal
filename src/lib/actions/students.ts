@@ -7,20 +7,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { createDb } from "@/db/client";
 import { profiles, curriculums, lessons, assignments, feedbacks } from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
-
-/** 관리자 권한 체크 유틸 */
-async function requireAdmin() {
-  const session = await auth();
-  if (session?.user?.role !== "admin") {
-    throw new Error("Unauthorized: Admin only.");
-  }
-  return session;
-}
+import { requireAdmin } from "@/lib/auth-guard";
 
 // ───────────────────────────────────────────────
 // 학생 목록 조회
@@ -177,22 +168,22 @@ export async function getStudentRosterStats(): Promise<StudentRosterStat[]> {
 
   const now = new Date();
 
-  return allStudents.map((st: any) => {
+  return allStudents.map((st) => {
     // 1. Current Module (완료되지 않은 가장 빠른 주차)
-    const stMods = allMods.filter((m: any) => m.studentId === st.id && !m.isCompleted);
-    stMods.sort((a: any, b: any) => a.weekNum - b.weekNum);
+    const stMods = allMods.filter((m) => m.studentId === st.id && !m.isCompleted);
+    stMods.sort((a, b) => (a.weekNum ?? 0) - (b.weekNum ?? 0));
     const currentModule = stMods.length > 0 ? `Week 0${stMods[0].weekNum}: ${stMods[0].title}` : "All Completed";
 
     // 2. Next Lesson
-    const upcomingLess = allLess.filter((l: any) => l.studentId === st.id && new Date(l.scheduledAt) >= now);
+    const upcomingLess = allLess.filter((l) => l.studentId === st.id && l.scheduledAt !== null && new Date(l.scheduledAt) >= now);
     const nextLessonDate = upcomingLess.length > 0 ? upcomingLess[0].scheduledAt : null;
 
     // 3. Pending Feedbacks
     // 학생의 애싸인먼트 중 코멘트(feedback)가 없는 것 개수
-    const stAssig = allAssig.filter((a: any) => a.studentId === st.id);
-    const pendingCount = stAssig.filter((a: any) => {
+    const stAssig = allAssig.filter((a) => a.studentId === st.id);
+    const pendingCount = stAssig.filter((a) => {
       // 해당 assignmentId를 가진 피드백이 하나라도 있는지 확인
-      const hasFeedback = allFeeds.some((f: any) => f.assignmentId === a.id);
+      const hasFeedback = allFeeds.some((f) => f.assignmentId === a.id);
       return !hasFeedback;
     }).length;
 
