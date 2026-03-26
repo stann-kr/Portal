@@ -86,6 +86,7 @@ export async function createPrivateNote(targetStudentId: string, _prev: CreateNo
     revalidatePath(`/dashboard/admin/students/${targetStudentId}`);
     revalidatePath(`/dashboard/admin/students/${targetStudentId}/notes`);
     revalidatePath(`/dashboard/student/notes`);
+    revalidatePath("/dashboard/student");
     
     return { success: true };
   } catch (err) {
@@ -115,4 +116,5 @@ export async function deletePrivateNote(noteId: string) {
   revalidatePath(`/dashboard/admin/students/${targetNote.studentId}`);
   revalidatePath(`/dashboard/admin/students/${targetNote.studentId}/notes`);
   revalidatePath(`/dashboard/student/notes`);
+    revalidatePath("/dashboard/student");
 }

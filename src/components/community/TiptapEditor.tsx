@@ -21,6 +21,7 @@ export default function TiptapEditor({
   onSubmit: (html: string) => void;
 }) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       ImageExtension.configure({

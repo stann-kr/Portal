@@ -24,6 +24,8 @@ import type { DiggingColumnType, QnaStatus } from "@/db/schema";
 
 type TabKey = "overview" | "digging" | "notes" | "qna";
 type RawColumn = Awaited<ReturnType<typeof getOrSeedColumns>>[number];
+type RawNote = Awaited<ReturnType<typeof getPrivateNotes>>[number];
+type RawQnaThread = Awaited<ReturnType<typeof getQnaThreadsByStudent>>[number];
 
 // ─── 탭별 콘텐츠 ───────────────────────────────────
 
@@ -80,7 +82,7 @@ async function NotesTabContent({
           </div>
         ) : (
           <div className="space-y-4">
-            {notes.map((note) => (
+            {notes.map((note: RawNote) => (
               <div
                 key={note.id}
                 className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3"
@@ -94,7 +96,7 @@ async function NotesTabContent({
                       <span>{note.authorName || "Unknown"}</span>
                       <span>·</span>
                       <span>
-                        {new Date(note.createdAt!).toLocaleDateString("ko-KR", {
+                        {new Date(note.createdAt!).toLocaleString("ko-KR", {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
@@ -104,7 +106,7 @@ async function NotesTabContent({
                       </span>
                     </div>
                   </div>
-                  {(note.authorId === adminId || true) && (
+                  {note.authorId === adminId && (
                     <DeleteNoteButton noteId={note.id} />
                   )}
                 </div>
@@ -123,7 +125,7 @@ async function NotesTabContent({
 
 async function QnaTabContent({ studentId }: { studentId: string }) {
   const rawThreads = await getQnaThreadsByStudent(studentId);
-  const threads = rawThreads.map((t) => ({
+  const threads = rawThreads.map((t: RawQnaThread) => ({
     ...t,
     status: t.status as QnaStatus,
   }));

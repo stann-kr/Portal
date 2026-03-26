@@ -7,7 +7,7 @@
 
 ## 개요 (Overview)
 
-강사가 직접 학생 계정을 생성하고 커리큘럼·레슨을 관리하며, 학생은 믹스셋을 제출하고 타임스탬프 기반 피드백을 받는 프라이빗 LMS. 커뮤니티 게시판을 통한 수강생 간 소통도 지원함.
+강사가 직접 학생 계정을 생성하고 커리큘럼·레슨을 관리하며, 학생은 믹스셋을 제출하고 타임스탬프 기반 피드백을 받는 프라이빗 LMS. 커뮤니티 게시판, 개인 캘린더, 디깅 보드, 1:1 프라이빗 노트, Q&A 게시판을 통한 수강생-강사 소통도 지원함.
 
 ---
 
@@ -21,6 +21,10 @@
 | **레슨 일정**     | 강사가 날짜·시간 지정 레슨 등록. 학생 전용 `.ics` URL로 모바일 캘린더 단방향 구독                                               |
 | **과제 피드백**   | 학생이 YouTube/SoundCloud URL 제출 → 강사가 `MM:SS` 타임스탬프 기반 피드백 작성 → 클릭 시 해당 시점 즉시 재생                   |
 | **커뮤니티**      | `gear-and-setup` / `track-id` / `terminal-info` / `general` 카테고리 게시판. TiptapEditor 리치 텍스트. 본인 글/댓글만 삭제 가능 |
+| **개인 캘린더**   | FullCalendar 기반 이벤트 관리. 레슨 일정 자동 연동, 드래그앤드롭 리스케줄링, `.ics` 구독 URL 제공                               |
+| **디깅 게시판**   | TanStack Table 기반 커스텀 컬럼 음악 트랙 관리. oEmbed(YouTube/SoundCloud) 메타 자동 추출, 별점/선호도 셀 지원                  |
+| **1:1 프라이빗 노트** | Admin이 학생별 수업 노트 작성·관리. TiptapEditor 리치 텍스트, isomorphic-dompurify XSS 방어                               |
+| **Q&A 게시판**    | 학생이 질문 스레드 생성 → 강사가 답변. OPEN / ANSWERED / CLOSED 상태 관리. Admin 전체 조회 가능                                 |
 
 ---
 
@@ -35,7 +39,9 @@
 | **Styling**        | Tailwind CSS v4, Framer Motion — 클린/미니멀 라이트 테마 (Inter 폰트) |
 | **Editor**         | Tiptap (WYSIWYG)                                                      |
 | **Media Player**   | react-player (YouTube / SoundCloud)                                   |
-| **Calendar**       | `ics` 라이브러리 (`.ics` 파일 생성)                                   |
+| **Calendar**       | FullCalendar (인터랙티브 캘린더) + `ics` 라이브러리 (`.ics` 파일 생성) |
+| **Table**          | TanStack Table v8 (디깅 게시판 커스텀 컬럼)                           |
+| **Sanitization**   | isomorphic-dompurify (서버사이드 XSS 방어)                            |
 | **Dev Env**        | 100% Docker (`linux/arm64`, Apple Silicon)                            |
 
 ---
@@ -50,6 +56,13 @@ assignments     — 과제 제출 (studentId, mediaUrl)
 feedbacks       — 타임스탬프 피드백 (assignmentId, timeMarker, content)
 posts           — 커뮤니티 게시물 (authorId, category, title, contentHtml)
 comments        — 게시물 댓글 (postId, authorId, contentHtml)
+categories      — 커뮤니티 카테고리 (slug, name, sortOrder)
+privateNotes    — 1:1 수업 노트 (studentId, authorId, title, contentHtml)
+calendarEvents  — 개인 캘린더 이벤트 (userId, eventType, startTime, endTime)
+diggingColumns  — 디깅 보드 컬럼 정의 (userId, columnType, name, sortOrder)
+diggingTracks   — 디깅 보드 트랙 데이터 (userId, values JSON, linkUrl)
+qnaThreads      — Q&A 스레드 (studentId, title, status)
+qnaReplies      — Q&A 답변 (threadId, authorId, contentHtml)
 ```
 
 ---
@@ -65,6 +78,12 @@ comments        — 게시물 댓글 (postId, authorId, contentHtml)
 /dashboard/student/curriculum            — 전체 커리큘럼 + 진행률
 /dashboard/student/assignments           — 과제 목록 + 제출
 /dashboard/student/assignments/[id]      — 과제 상세 (VideoPlayer + 타임라인 피드백)
+/dashboard/student/digging               — 디깅 게시판 (본인 보드)
+/dashboard/student/notes                 — 1:1 프라이빗 노트 목록
+/dashboard/calendar                      — 개인 캘린더 (FullCalendar)
+/dashboard/qna                           — Q&A 게시판 목록
+/dashboard/qna/new                       — 새 질문 작성
+/dashboard/qna/[threadId]                — 스레드 상세 + 답변
 /community                               — 커뮤니티 (카테고리별 게시판)
 /community/new                           — 게시물 작성
 /community/[postId]                      — 게시물 상세 + 댓글

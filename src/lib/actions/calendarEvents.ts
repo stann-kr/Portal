@@ -78,6 +78,7 @@ export async function createCalendarEvent(
   });
 
   revalidatePath("/dashboard/calendar");
+  revalidatePath("/dashboard/student");
   return { id };
 }
 
@@ -110,6 +111,7 @@ export async function updateCalendarEvent(
     );
 
   revalidatePath("/dashboard/calendar");
+  revalidatePath("/dashboard/student");
 }
 
 // ─── 삭제 ────────────────────────────────────────
@@ -131,4 +133,5 @@ export async function deleteCalendarEvent(eventId: string) {
     );
 
   revalidatePath("/dashboard/calendar");
+  revalidatePath("/dashboard/student");
 }

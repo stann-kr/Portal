@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { createDb } from "@/db/client";
 import { profiles, curriculums, lessons, assignments, feedbacks } from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import { requireAdmin } from "@/lib/auth-guard";
 
@@ -157,14 +158,14 @@ export async function getStudentRosterStats(): Promise<StudentRosterStat[]> {
   const db = createDb();
 
   // 모든 학생 조회
-  const allStudents = await db.select().from(profiles).where(eq(profiles.role, "student")).orderBy(desc(profiles.createdAt));
+  const allStudents: InferSelectModel<typeof profiles>[] = await db.select().from(profiles).where(eq(profiles.role, "student")).orderBy(desc(profiles.createdAt));
 
   // 모든 데이터 패치 (학생 수가 매우 많지 않음을 가정)
   // 향후 성능 이슈 시 raw sql join으로 최적화
-  const allMods = await db.select().from(curriculums);
-  const allLess = await db.select().from(lessons).orderBy(asc(lessons.scheduledAt));
-  const allAssig = await db.select().from(assignments);
-  const allFeeds = await db.select().from(feedbacks);
+  const allMods: InferSelectModel<typeof curriculums>[] = await db.select().from(curriculums);
+  const allLess: InferSelectModel<typeof lessons>[] = await db.select().from(lessons).orderBy(asc(lessons.scheduledAt));
+  const allAssig: InferSelectModel<typeof assignments>[] = await db.select().from(assignments);
+  const allFeeds: InferSelectModel<typeof feedbacks>[] = await db.select().from(feedbacks);
 
   const now = new Date();
 

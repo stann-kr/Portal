@@ -1,19 +1,23 @@
+/**
+ * @file src/app/dashboard/layout.tsx
+ * @description 대시보드 공통 레이아웃.
+ * - admin: 240px 풀 사이드바 (기존 유지)
+ * - student: 56px 아이콘 레일 (StudentSideRail) + 풀-너비 main (p-0)
+ */
 import Link from "next/link";
 import {
   LayoutDashboard,
   MessageSquare,
   LogOut,
-  BookOpen,
-  FileVideo,
   Tag,
   CalendarDays,
-  Disc3,
   HelpCircle,
 } from "lucide-react";
 import { getOpenThreadCount } from "@/lib/actions/qna";
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { StudentSideRail } from "@/components/student-portal/StudentSideRail";
 
 export default async function DashboardLayout({
   children,
@@ -27,83 +31,50 @@ export default async function DashboardLayout({
   }
 
   const role = session.user.role ?? "student";
+
+  // 학생은 56px 레일 사용 — 어드민 전용 사이드바만 구성
+  if (role === "student") {
+    return (
+      <div className="flex min-h-screen bg-background text-foreground">
+        <StudentSideRail />
+        <main className="flex-1 overflow-auto">{children}</main>
+      </div>
+    );
+  }
+
+  // ── 어드민 사이드바 ─────────────────────────────────────
   const openQnaCount = await getOpenThreadCount().catch(() => 0);
 
-  const navItems =
-    role === "admin"
-      ? [
-          {
-            name: "Dashboard",
-            href: "/dashboard/admin",
-            icon: LayoutDashboard,
-          },
-          {
-            name: "Categories",
-            href: "/dashboard/admin/categories",
-            icon: Tag,
-          },
-          {
-            name: "Calendar",
-            href: "/dashboard/calendar",
-            icon: CalendarDays,
-          },
-          { name: "Community", href: "/community", icon: MessageSquare },
-          { name: "Q&A", href: "/dashboard/qna", icon: HelpCircle },
-        ]
-      : [
-          {
-            name: "Dashboard",
-            href: "/dashboard/student",
-            icon: LayoutDashboard,
-          },
-          {
-            name: "Calendar",
-            href: "/dashboard/calendar",
-            icon: CalendarDays,
-          },
-          {
-            name: "Digging",
-            href: "/dashboard/student/digging",
-            icon: Disc3,
-          },
-          {
-            name: "Curriculum",
-            href: "/dashboard/student/curriculum",
-            icon: BookOpen,
-          },
-          {
-            name: "Assignments",
-            href: "/dashboard/student/assignments",
-            icon: FileVideo,
-          },
-          {
-            name: "Notes",
-            href: "/dashboard/student/notes",
-            icon: BookOpen,
-          },
-          { name: "Community", href: "/community", icon: MessageSquare },
-          {
-            name: "Q&A",
-            href: "/dashboard/qna",
-            icon: HelpCircle,
-            badge: openQnaCount,
-          },
-        ];
+  const adminNavItems = [
+    { name: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
+    { name: "Categories", href: "/dashboard/admin/categories", icon: Tag },
+    { name: "Calendar", href: "/dashboard/calendar", icon: CalendarDays },
+    { name: "Community", href: "/community", icon: MessageSquare },
+    {
+      name: "Q&A",
+      href: "/dashboard/qna",
+      icon: HelpCircle,
+      badge: openQnaCount,
+    },
+  ];
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Sidebar */}
+      {/* Admin Sidebar */}
       <aside className="w-60 shrink-0 border-r border-border bg-muted/30 flex flex-col">
         {/* Brand */}
         <div className="h-14 px-5 border-b border-border flex items-center">
-          <Link href="/" className="text-sm font-semibold text-foreground tracking-tight hover:text-muted-foreground transition-colors">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-foreground tracking-tight hover:text-muted-foreground transition-colors"
+          >
             Stann Lumo Portal
           </Link>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
+          {adminNavItems.map((item) => {
             const Icon = item.icon;
             const badge = ("badge" in item ? item.badge : 0) ?? 0;
             return (

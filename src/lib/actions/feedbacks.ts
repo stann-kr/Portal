@@ -8,9 +8,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createDb } from "@/db/client";
-import { feedbacks } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
-import { requireAdmin } from "@/lib/auth-guard";
+import { feedbacks, assignments } from "@/db/schema";
+import { eq, asc, inArray } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
+import { requireAdmin, requireAuth } from "@/lib/auth-guard";
 
 // ───────────────────────────────────────────────
 // 조회
@@ -47,7 +48,7 @@ export async function createFeedback(
 ): Promise<CreateFeedbackState> {
   await requireAdmin();
 
-  const timeMarkerStr = formData.get("timeMarker") as string;
+  const timeMarkerStr = (formData.get("timeMarker") as string) ?? "";
   const content = (formData.get("content") as string)?.trim();
 
   if (!content) return { error: "피드백 내용을 입력해주세요." };
@@ -85,6 +86,40 @@ export async function deleteFeedback(feedbackId: string, assignmentId: string) {
   const db = createDb();
   await db.delete(feedbacks).where(eq(feedbacks.id, feedbackId));
   revalidatePath(`/dashboard/student/assignments/${assignmentId}`);
+}
+
+// ───────────────────────────────────────────────
+// 학생 본인 과제별 피드백 카운트 맵
+// ───────────────────────────────────────────────
+
+/**
+ * 현재 로그인 학생의 과제 ID → 피드백 수 맵 반환.
+ * StudentPortalPage에서 assignment 목록과 병합하여 사용.
+ */
+export async function getMyFeedbacksMap(): Promise<Record<string, number>> {
+  const session = await requireAuth();
+  const db = createDb();
+
+  const myAssignments: Pick<InferSelectModel<typeof assignments>, "id">[] =
+    await db
+      .select({ id: assignments.id })
+      .from(assignments)
+      .where(eq(assignments.studentId, session.user.id!));
+
+  if (!myAssignments.length) return {};
+
+  const ids = myAssignments.map((a) => a.id);
+  const rows: Pick<InferSelectModel<typeof feedbacks>, "assignmentId">[] =
+    await db
+      .select({ assignmentId: feedbacks.assignmentId })
+      .from(feedbacks)
+      .where(inArray(feedbacks.assignmentId, ids));
+
+  const map: Record<string, number> = {};
+  for (const row of rows) {
+    map[row.assignmentId] = (map[row.assignmentId] ?? 0) + 1;
+  }
+  return map;
 }
 
 // ───────────────────────────────────────────────

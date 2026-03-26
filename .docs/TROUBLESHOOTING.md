@@ -2,6 +2,60 @@
 
 프로젝트 진행 중 발생하는 주요 버그, 아키텍처 결함, 및 Docker(M1/M2) 관련 환경 오류에 대한 원인 분석 및 해결 과정을 기록함.
 
+## [v2.0.0] - 2026-03-27
+
+### 1. [NextAuth v5] provider 병합으로 `authorize()` 미호출 — 로그인 전면 불가
+
+- **문제 현상**: 어드민·학생 계정 모두 로그인 시 "이메일 또는 비밀번호가 올바르지 않습니다" 반환. `bcrypt.compare` 수동 테스트는 `true` 반환. `[auth] authorize error:` 로그 미출력(catch 블록 미진입).
+- **원인 분석**: NextAuth v5는 `authConfig`와 `auth.ts`의 `providers` 배열을 **병합(merge)** 처리함.
+  - `auth.config.ts`: `providers: [Credentials({})]` — `authorize` 함수 없는 빈 Credentials 프로바이더
+  - `auth.ts`: `CredentialsProvider({ authorize(...) {...} })` — 실제 검증 로직 포함
+  - 병합 결과 `Credentials({})` (첫 번째 등록, authorize 없음)가 우선 적용되어 항상 `null` 반환
+  - `auth.ts`의 `authorize`는 두 번째 provider로 무시됨
+- **해결 방법**: `auth.config.ts`에서 `providers: [Credentials({})]` → `providers: []`로 변경.
+  ```typescript
+  // BEFORE
+  providers: [Credentials({})],
+  // AFTER
+  export const authConfig: NextAuthConfig = {
+    providers: [],
+    // ...
+  }
+  ```
+- **교훈**: NextAuth v5에서 `auth.config.ts`(Edge 호환용)와 `auth.ts`(Node 런타임용)를 분리하는 패턴에서, `authConfig`의 `providers`는 반드시 `[]`로 비워두고 `auth.ts`에서만 실제 provider를 등록해야 함.
+
+---
+
+### 2. [Next.js] `"use server"` 파일에서 동기 함수 re-export — 컴파일 에러
+
+- **문제 현상**: Docker 로그에 `Error: x Only async functions are allowed to be exported in a "use server" file.` 출력. `unifiedItems.ts`의 `getUnifiedItemColor` re-export 라인 지목.
+- **원인 분석**: `unifiedItems.ts` 상단에 `"use server"` 파일 지시어 존재. Next.js 컴파일러는 해당 파일의 모든 export를 Server Action으로 처리하므로, 동기 함수(`getUnifiedItemColor`)를 re-export하면 "Server Action은 async여야 한다" 규칙 위반.
+  - 이전 시도: `getUnifiedItems()` 함수 내부에 `"use server"` 인라인 지정 → 클라이언트 컴포넌트가 해당 파일을 import할 때 "Client Component에서 inline Server Action 정의 불가" 에러로 전환
+- **해결 방법**:
+  1. `src/lib/utils/unifiedItemUtils.ts` 신규 생성 — `"use server"` 지시어 없음. `UnifiedItem`, `UnifiedItemType` 타입 + `getUnifiedItemColor` 헬퍼 포함.
+  2. `unifiedItems.ts` — 파일 레벨 `"use server"` 유지 + `export { getUnifiedItemColor }` re-export 라인 제거.
+  3. 6개 클라이언트 컴포넌트의 임포트 경로를 `@/lib/actions/unifiedItems` → `@/lib/utils/unifiedItemUtils`로 일괄 변경.
+- **교훈**: `"use server"` 파일에서 타입·유틸 함수는 re-export 불가. 클라이언트·서버 모두 사용하는 유틸리티는 별도 파일(`lib/utils/`)에 분리하고 `"use server"` 지시어 없이 유지해야 함.
+
+---
+
+## [v1.5.0] - 2026-03-27
+
+### 1. [Tiptap] SSR Hydration Mismatch — `immediatelyRender` 미설정
+
+- **문제 현상**: Tiptap 에디터가 포함된 페이지 로드 시 `Tiptap Error: SSR has been detected, please set immediatelyRender explicitly to false to avoid hydration mismatches` 오류 발생.
+- **원인 분석**: Tiptap v2+의 `useEditor` 훅은 기본적으로 서버사이드에서도 즉시 렌더링을 시도함. Next.js App Router 환경에서 서버와 클라이언트의 초기 렌더 결과가 달라 React hydration mismatch 발생.
+- **해결 방법**: `src/components/community/TiptapEditor.tsx`의 `useEditor` 옵션에 `immediatelyRender: false` 추가.
+  ```typescript
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [...],
+  });
+  ```
+- **적용 범위**: `TiptapEditor` 컴포넌트를 import하는 모든 페이지(`PrivateNoteForm`, `ThreadDetailClient`, `/community/new`, `/dashboard/qna/new`)에 동일하게 적용됨.
+
+---
+
 ## [v0.8.0] - 2026-03-25
 
 ### 1. [빌드] Next.js 15 정적 생성 시 RSC 페이로드 오류 (`undefined.env`)

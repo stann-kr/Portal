@@ -24,7 +24,7 @@ interface StudentDetailTabsProps {
 
 export function StudentDetailTabs({ studentId }: StudentDetailTabsProps) {
   const searchParams = useSearchParams();
-  const activeTab = (searchParams.get("tab") ?? "overview") as TabKey;
+  const activeTab = (searchParams?.get("tab") ?? "overview") as TabKey;
 
   return (
     <div className="flex gap-1 border-b border-border">

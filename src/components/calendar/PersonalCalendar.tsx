@@ -103,9 +103,13 @@ export function PersonalCalendar({ initialEvents }: PersonalCalendarProps) {
 
   // 이벤트 삭제
   const handleDelete = useCallback(async (eventId: string) => {
-    await deleteCalendarEvent(eventId);
-    setEvents((prev) => prev.filter((e) => e.id !== eventId));
-    setDetailEvent(null);
+    try {
+      await deleteCalendarEvent(eventId);
+      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+      setDetailEvent(null);
+    } catch {
+      // 삭제 실패 시 UI 상태 유지
+    }
   }, []);
 
   // 생성 성공 후 새로고침 (revalidatePath가 서버 캐시를 정리하므로 router.refresh 필요)

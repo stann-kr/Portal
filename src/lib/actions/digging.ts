@@ -88,6 +88,7 @@ export async function addDiggingColumn(data: {
   });
 
   revalidatePath("/dashboard/student/digging");
+  revalidatePath("/dashboard/student");
 }
 
 /**
@@ -108,6 +109,7 @@ export async function deleteDiggingColumn(columnId: string) {
     );
 
   revalidatePath("/dashboard/student/digging");
+  revalidatePath("/dashboard/student");
 }
 
 // ─── 트랙 ─────────────────────────────────────────
@@ -125,7 +127,10 @@ export async function getDiggingTracks(userId: string) {
 
   return rows.map((r: typeof rows[number]) => ({
     ...r,
-    values: JSON.parse(r.values ?? "{}") as Record<string, unknown>,
+    values: (() => {
+      try { return JSON.parse(r.values ?? "{}") as Record<string, unknown>; }
+      catch { return {} as Record<string, unknown>; }
+    })(),
   }));
 }
 
@@ -147,6 +152,7 @@ export async function createDiggingTrack(data: {
   });
 
   revalidatePath("/dashboard/student/digging");
+  revalidatePath("/dashboard/student");
 }
 
 /**
@@ -173,7 +179,10 @@ export async function updateDiggingTrackValue(
 
   if (!track) return;
 
-  const currentValues = JSON.parse(track.values ?? "{}") as Record<string, unknown>;
+  const currentValues = (() => {
+    try { return JSON.parse(track.values ?? "{}") as Record<string, unknown>; }
+    catch { return {} as Record<string, unknown>; }
+  })();
   currentValues[columnId] = value;
 
   await db
@@ -199,6 +208,7 @@ export async function deleteDiggingTrack(trackId: string) {
     );
 
   revalidatePath("/dashboard/student/digging");
+  revalidatePath("/dashboard/student");
 }
 
 // ─── 링크 메타 추출 ───────────────────────────────

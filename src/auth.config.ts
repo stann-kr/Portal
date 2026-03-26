@@ -4,16 +4,11 @@
  * 미들웨어에서 사용 가능하도록 DB 접근 로직 없이 순수 설정만 포함.
  */
 import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 
 type UserRole = "admin" | "student";
 
-export const authConfig = {
-  providers: [
-    // authorize 로직은 auth.ts에서 오버라이드.
-    // 여기서는 Credentials provider 존재 선언만.
-    Credentials({}),
-  ],
+export const authConfig: NextAuthConfig = {
+  providers: [],
   session: {
     strategy: "jwt",
   },
@@ -69,4 +64,4 @@ export const authConfig = {
    * redirect loop가 발생함.
    */
   trustHost: true,
-} satisfies NextAuthConfig;
+};

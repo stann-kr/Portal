@@ -14,6 +14,8 @@ import { getQnaThreads } from "@/lib/actions/qna";
 import { ThreadList } from "@/components/qna/ThreadList";
 import type { QnaStatus } from "@/db/schema";
 
+type RawThread = Awaited<ReturnType<typeof getQnaThreads>>[number];
+
 type QnaThreadItem = {
   id: string;
   title: string;
@@ -32,8 +34,7 @@ export default async function QnaPage() {
   const isAdmin = session.user.role === "admin";
   const rawThreads = await getQnaThreads();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const threads: QnaThreadItem[] = (rawThreads as any[]).map((t) => ({
+  const threads: QnaThreadItem[] = rawThreads.map((t: RawThread) => ({
     ...t,
     status: t.status as QnaStatus,
   }));

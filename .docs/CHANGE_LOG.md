@@ -3,6 +3,67 @@
 프로젝트 기획부터 개발, 배포 및 유지보수 전 단계를 아우르는 주요 변경 사항을 기록함.
 각 변경 사항은 [버전명] - 날짜 형식으로 작성하며, 추가(Added), 수정(Changed), 제거(Removed), 수정/해결(Fixed) 등으로 분류함.
 
+## [v2.0.0] - 2026-03-27
+
+### Added — 학생 원페이지 포털 (Notion 스타일 리디자인)
+
+- `src/lib/actions/unifiedItems.ts` — 5개 테이블 병렬 집계 `UnifiedItem[]` 정규화 서버 액션
+- `src/lib/actions/feedbacks.ts` — `getMyFeedbacksMap()` 추가
+- `src/components/student-portal/StudentSideRail.tsx` — 56px 아이콘 레일
+- `src/components/student-portal/StudentPortalClient.tsx` — Framer Motion 3섹션 탭 전환 오케스트레이터
+- `src/components/student-portal/AnnouncementSection.tsx` — 공지사항 섹션
+- `src/components/student-portal/CalendarSection.tsx` — 5개 뷰 탭 캘린더 섹션
+- `src/components/student-portal/UnifiedCalendar.tsx` — FullCalendar 통합 뷰
+- `src/components/student-portal/DailyListView.tsx` — 날짜별 그룹핑 리스트
+- `src/components/student-portal/AllItemsView.tsx` — 전체 항목 플랫 리스트 + 타입 필터
+- `src/components/student-portal/CurriculumView.tsx` — 커리큘럼 낙관적 완료 토글 뷰
+- `src/components/student-portal/AssignmentView.tsx` — 과제 제출 폼 + 리스트
+- `src/components/student-portal/AssignmentDetailPanel.tsx` — VideoPlayer + 타임라인 피드백
+- `src/components/student-portal/UnifiedCreateDialog.tsx` — 통합 엔트리 생성 다이얼로그
+- `src/components/student-portal/SlidePanel.tsx` — 우측 슬라이드인 상세 패널 (Radix Dialog)
+- `src/components/student-portal/UnifiedItemDetail.tsx` — 타입별 아이템 상세 뷰
+- `src/components/student-portal/CommunitySection.tsx` — 커뮤니티 섹션 + 글 작성 다이얼로그
+- `src/components/student-portal/PostDetailPanel.tsx` — 게시물 상세 + 댓글 폼
+
+### Changed
+
+- `src/app/dashboard/layout.tsx` — 학생/어드민 사이드바 분기 (student → 56px rail, admin → 240px)
+- `src/app/dashboard/student/page.tsx` — RSC 원페이지 셸 재작성 (6개 병렬 패치)
+- `src/lib/actions/digging|privateNotes|qna|calendarEvents|assignments.ts` — `revalidatePath("/dashboard/student")` 추가
+- `src/app/dashboard/student/{digging,notes,curriculum,assignments}/page.tsx` — 원페이지로 리다이렉트
+
+### Fixed
+
+- `src/auth.config.ts` — `providers: [Credentials({})]` → `providers: []` 변경 (NextAuth v5 provider merge로 authorize 함수 미호출 버그 수정, 로그인 불가 문제 해결)
+- `src/lib/actions/unifiedItems.ts` — `export { getUnifiedItemColor }` 제거 (`"use server"` 파일에서 동기 함수 export 불가 컴파일 에러 수정)
+- `src/lib/utils/unifiedItemUtils.ts` — 신규 생성 (타입·색상 헬퍼 분리, 클라이언트 컴포넌트 임포트 경로 안정화)
+- `src/auth.ts` — 디버그 `console.error` 제거 (catch 블록 정리)
+
+---
+
+## [v1.5.0] - 2026-03-27
+
+### Fixed
+
+- `src/app/dashboard/admin/students/[id]/page.tsx` — `|| true` 오타 제거 (노트 삭제 버튼 권한 버그 수정 — 모든 노트에 삭제 버튼 노출되던 보안 버그)
+- `src/lib/actions/digging.ts` — `getDiggingTracks` / `updateDiggingTrackValue` JSON.parse try-catch 추가 (손상된 JSON으로 인한 서버 크래시 방지)
+- `src/lib/actions/feedbacks.ts` — `timeMarkerStr` null 참조 오류 수정 (`?? ""` 적용)
+- `src/app/dashboard/admin/students/[id]/page.tsx` — `toLocaleDateString` → `toLocaleString` 변경 (시간 표시 옵션 미적용 버그 수정)
+- `src/components/calendar/PersonalCalendar.tsx` — 이벤트 삭제 `handleDelete` try-catch 추가 (삭제 실패 시 UI/DB 상태 불일치 방지)
+
+### Changed
+
+- `src/app/dashboard/qna/page.tsx` — `any[]` 캐스트 제거, `Awaited<ReturnType<...>>` 패턴 적용
+
+### Docs
+
+- `.docs/README.md` — 개인 캘린더, 디깅 게시판, 1:1 프라이빗 노트, Q&A 기능 추가 (Phase 4–6 누락 항목 현행화)
+- `.docs/README.md` — 기술 스택 표에 FullCalendar, TanStack Table, isomorphic-dompurify 추가
+- `.docs/README.md` — 스키마 섹션에 categories, privateNotes, calendarEvents, diggingColumns, diggingTracks, qnaThreads, qnaReplies 추가
+- `.docs/README.md` — 라우트 구조에 calendar, digging, notes, qna 관련 7개 경로 추가
+
+---
+
 ## [v1.4.0] - 2026-03-26
 
 ### Added

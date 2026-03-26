@@ -7,8 +7,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import type { ComponentType, Ref } from "react";
 import dynamic from "next/dynamic";
-import type ReactPlayerType from "react-player";
 import { Button } from "@/components/ui/button";
 import { Play, Pause } from "lucide-react";
 
@@ -17,11 +17,23 @@ type ReactPlayerInstance = {
   seekTo: (amount: number, type: "seconds" | "fraction") => void;
 };
 
+/** react-player dynamic import용 prop 타입 (사용하는 prop만 명시) */
+type ReactPlayerProps = {
+  ref?: Ref<ReactPlayerInstance>;
+  url: string;
+  playing?: boolean;
+  onProgress?: (state: { playedSeconds: number }) => void;
+  width?: string;
+  height?: string;
+  controls?: boolean;
+  className?: string;
+};
+
 // SSR에서 react-player를 제외해 next/document 관련 충돌 방지
 const ReactPlayer = dynamic(
   () => import("react-player"),
   { ssr: false },
-) as unknown as typeof ReactPlayerType;
+) as ComponentType<ReactPlayerProps>;
 
 interface VideoPlayerProps {
   url: string;

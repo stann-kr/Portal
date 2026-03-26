@@ -184,6 +184,7 @@ export async function createQnaThread(
   });
 
   revalidatePath("/dashboard/qna");
+  revalidatePath("/dashboard/student");
   redirect(`/dashboard/qna/${threadId}`);
 }
 
@@ -232,6 +233,7 @@ export async function createQnaReply(
 
   revalidatePath(`/dashboard/qna/${threadId}`);
   revalidatePath("/dashboard/qna");
+  revalidatePath("/dashboard/student");
   return {};
 }
 
@@ -252,4 +254,5 @@ export async function updateThreadStatus(threadId: string, status: QnaStatus) {
 
   revalidatePath(`/dashboard/qna/${threadId}`);
   revalidatePath("/dashboard/qna");
+  revalidatePath("/dashboard/student");
 }

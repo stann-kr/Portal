@@ -64,6 +64,7 @@ export async function submitAssignment(
   });
 
   revalidatePath("/dashboard/student/assignments");
+  revalidatePath("/dashboard/student");
   return { success: true, id };
 }
 
