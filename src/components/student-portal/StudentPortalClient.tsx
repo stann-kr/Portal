@@ -6,7 +6,7 @@
  */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Megaphone, CalendarDays, Users } from "lucide-react";
 import type { UnifiedItem } from "@/lib/utils/unifiedItemUtils";
 
@@ -85,26 +85,27 @@ export function StudentPortalClient({
   displayName,
 }: StudentPortalClientProps) {
   const [activeSection, setActiveSection] = useState<Section>("announcements");
-  const [visible, setVisible] = useState(true);
+  const [animKey, setAnimKey] = useState(0);
+  const [fading, setFading] = useState(false);
   const nextSection = useRef<Section | null>(null);
 
-  // 페이드 아웃 → 섹션 교체 → 페이드 인
-  const changeSection = (next: Section) => {
-    if (next === activeSection) return;
+  // 페이드 아웃(150ms) → 섹션 교체 → slide-in 애니메이션
+  const changeSection = useCallback((next: Section) => {
+    if (next === activeSection || fading) return;
     nextSection.current = next;
-    setVisible(false);
-  };
+    setFading(true);
+  }, [activeSection, fading]);
 
   useEffect(() => {
-    if (!visible && nextSection.current) {
-      const timer = setTimeout(() => {
-        setActiveSection(nextSection.current!);
-        nextSection.current = null;
-        setVisible(true);
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [visible]);
+    if (!fading || !nextSection.current) return;
+    const timer = setTimeout(() => {
+      setActiveSection(nextSection.current!);
+      setAnimKey((k) => k + 1);
+      nextSection.current = null;
+      setFading(false);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [fading]);
 
   return (
     <div className="flex flex-col h-full min-h-screen">
@@ -116,14 +117,11 @@ export function StudentPortalClient({
             <button
               key={id}
               onClick={() => changeSection(id)}
-              className={`
-                inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors
-                ${
-                  isActive
-                    ? "border-primary text-primary bg-primary/5"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent"
-                }
-              `}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors ${
+                isActive
+                  ? "border-primary text-primary bg-primary/5"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
             >
               <Icon className="w-4 h-4" />
               {label}
@@ -140,35 +138,37 @@ export function StudentPortalClient({
         </div>
       </header>
 
-      {/* 섹션 콘텐츠 — CSS opacity 전환 */}
+      {/* 섹션 콘텐츠 — fade out → slide-in 전환 */}
       <div
         className={`flex-1 overflow-hidden transition-opacity duration-150 ${
-          visible ? "opacity-100" : "opacity-0"
+          fading ? "opacity-0" : "opacity-100"
         }`}
       >
-        {activeSection === "announcements" && (
-          <div className="p-6 max-w-3xl mx-auto">
-            <AnnouncementSection posts={announcements} />
-          </div>
-        )}
+        <div key={animKey} className="animate-section-in h-full">
+          {activeSection === "announcements" && (
+            <div className="p-6 max-w-3xl mx-auto">
+              <AnnouncementSection posts={announcements} />
+            </div>
+          )}
 
-        {activeSection === "calendar" && (
-          <CalendarSection
-            unifiedItems={unifiedItems}
-            curriculumModules={curriculumModules}
-            assignments={assignments}
-            studentId={studentId}
-          />
-        )}
-
-        {activeSection === "community" && (
-          <div className="p-6 max-w-4xl mx-auto">
-            <CommunitySection
-              initialPosts={communityPosts}
+          {activeSection === "calendar" && (
+            <CalendarSection
+              unifiedItems={unifiedItems}
+              curriculumModules={curriculumModules}
+              assignments={assignments}
               studentId={studentId}
             />
-          </div>
-        )}
+          )}
+
+          {activeSection === "community" && (
+            <div className="p-6 max-w-4xl mx-auto">
+              <CommunitySection
+                initialPosts={communityPosts}
+                studentId={studentId}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
