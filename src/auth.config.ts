@@ -49,11 +49,13 @@ export const authConfig = {
       return token;
     },
     /**
-     * 세션 객체에 JWT의 role 전달.
+     * 세션 객체에 JWT의 role 및 sub(user id) 전달.
+     * NextAuth v5 JWT 전략에서 token.sub이 user.id를 담음.
      */
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role;
+        session.user.id = token.sub ?? "";
       }
       return session;
     },
