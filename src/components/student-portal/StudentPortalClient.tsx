@@ -2,16 +2,15 @@
  * @file src/components/student-portal/StudentPortalClient.tsx
  * @description 학생 원페이지 포털 메인 오케스트레이터.
  * 3개 섹션(공지사항 / 캘린더 / 커뮤니티)을 상단 탭으로 전환.
- * Framer Motion AnimatePresence + mode="wait" 로 페이드·슬라이드 전환.
+ * CSS opacity 전환으로 페이드 애니메이션 구현 (framer-motion 미사용).
  */
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { Megaphone, CalendarDays, Users } from "lucide-react";
 import type { UnifiedItem } from "@/lib/utils/unifiedItemUtils";
 
-// ── 섹션 컴포넌트 (동적 로드 없이 직접 import — 모두 클라이언트 전용)
+// ── 섹션 컴포넌트
 import { AnnouncementSection } from "./AnnouncementSection";
 import { CalendarSection } from "./CalendarSection";
 import { CommunitySection } from "./CommunitySection";
@@ -74,22 +73,6 @@ const TABS: { id: Section; label: string; Icon: React.ElementType }[] = [
   { id: "community",     label: "커뮤니티", Icon: Users },
 ];
 
-// ── 전환 애니메이션 variants ──────────────────────────
-
-const sectionVariants = {
-  initial: { opacity: 0, x: 20 },
-  animate: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as const },
-  },
-  exit: {
-    opacity: 0,
-    x: -20,
-    transition: { duration: 0.15 },
-  },
-};
-
 // ── 컴포넌트 ─────────────────────────────────────────
 
 export function StudentPortalClient({
@@ -102,6 +85,26 @@ export function StudentPortalClient({
   displayName,
 }: StudentPortalClientProps) {
   const [activeSection, setActiveSection] = useState<Section>("announcements");
+  const [visible, setVisible] = useState(true);
+  const nextSection = useRef<Section | null>(null);
+
+  // 페이드 아웃 → 섹션 교체 → 페이드 인
+  const changeSection = (next: Section) => {
+    if (next === activeSection) return;
+    nextSection.current = next;
+    setVisible(false);
+  };
+
+  useEffect(() => {
+    if (!visible && nextSection.current) {
+      const timer = setTimeout(() => {
+        setActiveSection(nextSection.current!);
+        nextSection.current = null;
+        setVisible(true);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
 
   return (
     <div className="flex flex-col h-full min-h-screen">
@@ -112,7 +115,7 @@ export function StudentPortalClient({
           return (
             <button
               key={id}
-              onClick={() => setActiveSection(id)}
+              onClick={() => changeSection(id)}
               className={`
                 inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors
                 ${
@@ -137,42 +140,35 @@ export function StudentPortalClient({
         </div>
       </header>
 
-      {/* 섹션 콘텐츠 */}
-      <div className="flex-1 overflow-hidden">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={activeSection}
-            variants={sectionVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="h-full"
-          >
-            {activeSection === "announcements" && (
-              <div className="p-6 max-w-3xl mx-auto">
-                <AnnouncementSection posts={announcements} />
-              </div>
-            )}
+      {/* 섹션 콘텐츠 — CSS opacity 전환 */}
+      <div
+        className={`flex-1 overflow-hidden transition-opacity duration-150 ${
+          visible ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {activeSection === "announcements" && (
+          <div className="p-6 max-w-3xl mx-auto">
+            <AnnouncementSection posts={announcements} />
+          </div>
+        )}
 
-            {activeSection === "calendar" && (
-              <CalendarSection
-                unifiedItems={unifiedItems}
-                curriculumModules={curriculumModules}
-                assignments={assignments}
-                studentId={studentId}
-              />
-            )}
+        {activeSection === "calendar" && (
+          <CalendarSection
+            unifiedItems={unifiedItems}
+            curriculumModules={curriculumModules}
+            assignments={assignments}
+            studentId={studentId}
+          />
+        )}
 
-            {activeSection === "community" && (
-              <div className="p-6 max-w-4xl mx-auto">
-                <CommunitySection
-                  initialPosts={communityPosts}
-                  studentId={studentId}
-                />
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+        {activeSection === "community" && (
+          <div className="p-6 max-w-4xl mx-auto">
+            <CommunitySection
+              initialPosts={communityPosts}
+              studentId={studentId}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

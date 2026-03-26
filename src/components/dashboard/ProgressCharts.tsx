@@ -6,7 +6,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts";
 import { CheckCircle2, Circle } from "lucide-react";
 
@@ -77,7 +76,7 @@ export function ProgressCharts({
               fill="transparent"
               className="text-muted/30"
             />
-            <motion.circle
+            <circle
               cx="60"
               cy="60"
               r={radius}
@@ -85,21 +84,14 @@ export function ProgressCharts({
               strokeWidth="10"
               fill="transparent"
               strokeDasharray={circumference}
-              initial={{ strokeDashoffset: circumference }}
-              animate={{ strokeDashoffset }}
-              transition={{ duration: 1.6, ease: "easeOut" }}
+              strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <motion.span
-              className="text-3xl font-bold text-foreground leading-none"
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-            >
+            <span className="text-3xl font-bold text-foreground leading-none">
               {percentage}%
-            </motion.span>
+            </span>
             <span className="text-[10px] text-muted-foreground mt-1">
               Complete
             </span>
