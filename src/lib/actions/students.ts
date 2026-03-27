@@ -19,16 +19,6 @@ import { requireAdmin } from "@/lib/auth-guard";
 // ───────────────────────────────────────────────
 
 /**
- * 모든 학생(role=student) 목록 조회.
- * @returns 학생 프로필 배열
- */
-export async function getStudents() {
-  await requireAdmin();
-  const db = createDb();
-  return db.select().from(profiles).where(eq(profiles.role, "student"));
-}
-
-/**
  * 전체 학생 수 조회 (대시보드 통계용).
  */
 export async function getStudentCount(): Promise<number> {
@@ -100,21 +90,6 @@ export async function createStudent(
 
   revalidatePath("/dashboard/admin");
   redirect("/dashboard/admin");
-}
-
-// ───────────────────────────────────────────────
-// 학생 계정 삭제
-// ───────────────────────────────────────────────
-
-/**
- * 학생 계정 삭제.
- * @param studentId - 삭제할 학생 ID
- */
-export async function deleteStudent(studentId: string): Promise<void> {
-  await requireAdmin();
-  const db = createDb();
-  await db.delete(profiles).where(eq(profiles.id, studentId));
-  revalidatePath("/dashboard/admin");
 }
 
 // ───────────────────────────────────────────────
